@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+# gistclip - Create a GitHub Gist from a file path in the clipboard
+
+file="$(xclip -selection primary -o)"
+
+# Check if file is a absolute path
+if [[ "$file" != /* ]]; then
+  echo "File path must be absolute: $file"
+  exit 1
+fi
+
+# Check if the file exists
+if [[ ! -f "$file" ]]; then
+  echo "File not found: $file"
+  exit 1
+fi
+
+# Notify the user about the file being uploaded
+tmux display-message -d0 "Creating gist for $file" &
+
+# Create a new gist with the file content
+url="$(gh gist create "$file" 2> /dev/null)"
+if [[ $? -ne 0 ]]; then
+  echo "Failed to create gist"
+  exit 1
+fi
+
+# Extract the username and gist ID from the URL
+username="$(echo "$url" | awk -F'/' '{print $(NF-1)}')"
+
+# Get the raw file URL
+tmp_dir="$(mktemp -d)"
+
+# Clone the gist repository
+git clone "$url" "$tmp_dir" &> /dev/null
+if [[ $? -ne 0 ]]; then
+  echo "Failed to clone gist repository"
+  exit 1
+fi
+
+# Get the commit hash of the latest commit
+commit_hash="$(git -C "$tmp_dir" rev-parse HEAD)"
+
+# Get the raw file URL
+raw_url="https://gist.githubusercontent.com/${username}/$(basename "$url")/raw/$commit_hash/$(basename "$file")"
+
+# Clean up the temporary directory
+rm -rf "$tmp_dir"
+
+# Put the raw URL in the clipboard
+# Workaround to fix Tmux hanging - https://stackoverflow.com/questions/77890133/emacs-shell-command-with-xclip-hangs-when-copying-to-clipboard
+echo "$raw_url" | nohup xclip -selection primary > /dev/null 2>&1
+
+# Notify the user with the raw URL
+tmux display-message -d0 "$raw_url"

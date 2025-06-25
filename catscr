@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# catscr prints the screen screenshot as text in the terminal
+
+cd "/tmp"
+
+while true; do
+  import -window root screenshot.png || return 1
+  chafa -f symbols screenshot.png || return 1
+  sleep 5
+done

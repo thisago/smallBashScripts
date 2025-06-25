@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+url="$1"
+outOrgFile="$2"
+if [ -z "$url" ] || [ -z "$outOrgFile" ]; then
+  echo "Usage: $0 <url> <output-org-file>"
+  exit 1
+fi
+
+tmpHtml="$(mktemp)"
+wget "$url" -O "$tmpHtml" --header "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+
+if [ $? -ne 0 ]; then
+  echo "Failed to download the file."
+  exit 1
+fi
+
+# Extract only the body of the HTML file
+tmpBody="$(mktemp)"
+cat "$tmpHtml" | \
+  xq -q ".body" > "$tmpBody"
+
+# Convert the downloaded HTML file to Org mode format
+pandoc "$tmpHtml" -t org -o "$outOrgFile" --from html
+
+if [ $? -ne 0 ]; then
+  echo "Failed to convert the file to Org mode format."
+  exit 1
+fi
+
+# Clean up
+rm "$tmpHtml"

@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+# translate to source then back to fix the text
+
+# Checks if the required commands are available
+if ! command -v jq &> /dev/null; then
+  echo "jq is required to run this script. Please install it and try again."
+  exit 1
+fi
+if ! command -v nsla &> /dev/null; then
+  echo "nsla is required to run this script. Please install it and try again."
+  exit 1
+fi
+if ! command -v txtfix &> /dev/null; then
+  echo "txtfix is required to be in your PATH. Please install it and try again."
+  exit 1
+fi
+
+# Get the translation language from the second argument or default to 'en'
+translateLang="$2"
+if [[ "$translateLang" = "" ]]; then
+  translateLang="en"
+fi
+
+# Call nsla to translate the input text
+translated="$(nsla "$1" "$translateLang" "$3" "0")"
+if [[ "$translated" = "" ]]; then
+  echo "Translation failed or returned empty result."
+  exit 1
+fi
+
+# Extract the translated text and detected language from the JSON response
+translatedText="$(echo "$translated" | jq '.result.translatedText' -r)"
+detectedLang="$(echo "$translated" | jq '.result.detectedLanguage.language' -r)"
+if [[ "$detectedLang" = "null" ]]; then
+  echo "Detected language is null, using default language: $translateLang"
+  detectedLang="$translateLang"
+fi
+
+# If the detected language is the same as the translation language, use txtfix directly
+if [[ "$detectedLang" == "$translateLang" ]]; then
+  txtfix "$1" "es" "$3"
+  exit 0
+fi
+
+# Get the back translation language from the third argument or use the detected language
+backLanguage="$3"
+if [[ "$backLanguage" = "" ]]; then
+  backLanguage="$detectedLang"
+fi
+
+# Call nsla to translate back the translated text to the original language
+translatedBack="$(nsla "$translatedText" "$backLanguage" "$translateLang" "0")"
+if [[ "$translatedBack" = "" ]]; then
+  echo "Back translation failed or returned empty result."
+  exit 1
+fi
+
+# Extract the back translated text from the JSON response
+echo "[$translated, $translatedBack]" | \
+  jq '.[2].intermediary = .[0] | .[2].back = .[1] | .[2]'

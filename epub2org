@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+file="$(realpath "$1")"
+outFile="$(realpath "$2")"
+doNotAsk="$3"
+
+if [[ "$file" == "" ]] || ! test -f "$file"; then
+  echo "File not provided or not exists."
+  exit 1
+fi
+if [[ "$outFile" == "" ]] || test -f "$outFile"; then
+  echo "Out file not provided or already exists."
+  exit 1
+fi
+
+
+tmpDir="$(mktemp -d)"
+echo "Creating temp work dir $tmpDir"
+cd "$tmpDir"
+
+echo "Extracting $file"
+7z x "$file"
+
+if [[ "$(ls | wc -l )" == "1" ]]; then
+  dir="$(ls)"
+  echo "Entering directory $dir"
+  cd "$dir"
+fi
+
+echo "Converting to Org Mode"
+tmpOrgDir="$tmpDir/orgFiles"
+mkdir "$tmpOrgDir"
+for htmlFile in $(fd '.html$'); do
+  orgFile="$htmlFile.org"
+  echo "  Converting $htmlFile"
+  pandoc -i "$htmlFile" -o "$orgFile"
+  mv "$orgFile" "$tmpOrgDir"
+done
+
+echo "Merging Org files into $outFile"
+cd "$tmpOrgDir"
+echo "#+title: $file" > "$outFile"
+echo -e "#+STARTUP: content\n" >> "$outFile"
+for orgFile in $(fd .org); do
+  echo "* $orgFile" >> "$outFile"
+  cat "$orgFile" >> "$outFile"
+done
+
+if [[ "$doNotAsk" == "" ]]; then
+  echo "Press enter to delete $tmpDir"
+  read
+fi
+
+echo "Deleting $tmpDir"
+cd ~
+rm -r "$tmpDir"

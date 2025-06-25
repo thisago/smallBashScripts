@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+if ! test -n "$TERMSHOT_DIR"; then
+  echo "Set TERMSHOT_DIR in your path"
+  exit 1
+fi
+
+# Check if freeze is installed
+if ! command -v freeze &> /dev/null; then
+  echo "freeze command not found. Please install it first."
+  exit 1
+fi
+
+cd "$TERMSHOT_DIR" || {
+  echo "Failed to change directory to $TERMSHOT_DIR. Please check the path."
+  exit 1
+}
+
+configJson="$(realpath "freeze.json")"
+
+dt="$(date +%Y-%m-%d_%H-%M-%S)"
+outputSvg="$(realpath "shots/$dt.svg")"
+outputRaw="$(realpath "shots/raw/$dt.ansi")"
+
+bytes="$(tmux capture-pane -pet 0)"
+
+echo "$bytes" | freeze -c "$configJson" -o "$outputSvg" -t 0 > /dev/null || {
+  echo "Failed to capture pane with freeze. Please check the command and configuration."
+  exit 1
+}
+
+echo "$bytes" > "$outputRaw"
+
+outputSvgName="$(basename "$outputSvg")"
+
+git add "$outputSvg" "$outputRaw" || {
+  echo "Failed to add files to git. Please check your git status."
+  exit 1
+}
+git commit -m "chore(shots): $dt" > /dev/null || {
+  echo "Failed to commit changes to git. Please check your git status."
+  exit 1
+}
+
+xclip -selection primary <<< "$outputSvg" || {
+  echo "Failed to copy SVG output to clipboard. Please check xclip installation."
+  exit 1
+}
+
+tmux display-message -d0 "$dt" &

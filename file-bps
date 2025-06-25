@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+file=$1
+
+fileSize() {
+  if ! test -f "$file" && ! test -d "$file"; then
+    echo 0
+    return
+  fi
+
+  du -sb "$file" | sed -r 's/([0-9]+).*/\1/'
+}
+
+old=`fileSize`
+
+while true; do
+  new=`fileSize`
+  hsize=`test -f "$file" && ls -lah "$file" | awk '{print \$5}' || echo "?"`
+  bps=`echo -e "${new} - ${old}" | bc`
+  mps=`echo "$bps / 1024 / 1024" | bc -l`
+  echo -en "\n${mps} Mb/s per second ($hsize)"
+  sleep 1
+  old=$new
+done

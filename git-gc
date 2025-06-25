@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# This script runs `git gc` and reports the size of the `.git` directory before and after garbage collection.
+
+originalSize="$(du -sh .git | awk '{printf "%s", $1}')"
+
+time git gc $@
+
+gcedSize="$(du -sh .git | awk '{print $1}')"
+
+echo -e "\n$originalSize -> $gcedSize"

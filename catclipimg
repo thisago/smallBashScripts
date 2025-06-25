@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+getImage() {
+  xclip -selection clipboard -t image/png -o
+}
+
+getImage | chafa - $@

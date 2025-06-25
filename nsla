@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+# traNSLAte
+
+# Check if required environment variables are set
+if [ "$LIBRETRANSLATE_HOST" = "" ]; then
+  echo "Please set the LIBRETRANSLATE_HOST environment variable"
+  exit 1
+fi
+if [ "$LIBRETRANSLATE_DEFAULT_LANG" = "" ]; then
+  echo "Please set the LIBRETRANSLATE_DEFAULT_LANG environment variable"
+  exit 1
+fi
+
+# Check if required commands are available
+if ! command -v jq &> /dev/null; then
+  echo "jq is required to run this script. Please install it and try again."
+  exit 1
+fi
+if ! command -v curl &> /dev/null; then
+  echo "curl is required to run this script. Please install it and try again."
+  exit 1
+fi
+
+# Check if the input text is provided
+txt="${1:-$(</dev/stdin)}"
+if [ "$txt" = "" ]; then
+  jq -n "{payload: {}, result: {error: \"Missing text to translate\"}}"
+  exit 1
+fi
+
+# Prepare the payload for the translation request
+payload="$(jq -n \
+  --arg txt "$txt" \
+  --arg target "${2:-$LIBRETRANSLATE_DEFAULT_LANG}" \
+  --arg source "${3:-auto}" \
+  --arg alternatives "${4:-5}" \
+  '{
+     q: $txt,
+     target: $target,
+     source: $source,
+     alternatives: $alternatives,
+     format: "text"
+   }')"
+
+result="$(curl "$LIBRETRANSLATE_HOST/translate" \
+  -H 'Content-Type: application/json' \
+  -s \
+  -d "$payload" || echo "{\"error\":\"Can't connect to translation services\"}")"
+
+jq -n "{payload: $payload, result: $result}"

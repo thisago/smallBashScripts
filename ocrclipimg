@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+getImage() {
+  xclip -selection clipboard -t image/png -o
+}
+
+text="$(getImage | tesseract - - $@)"
+
+if [[ "$text" != "" ]]; then
+  echo "$text" | xclip -selection clipboard
+  echo "$text"
+fi

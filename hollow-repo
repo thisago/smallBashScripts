@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+tmpDir="tmpRepoDir"
+
+repoDir=$1
+cd "$repoDir"
+echo "Continue? would delete $(realpath .git)"
+read wait
+
+repoUrl="$(git remote get-url origin)"
+git clone "$repoUrl" "$tmpDir" --depth=1 &&
+rm -rf .git &&
+mv "$tmpDir/.git" . &&
+rm -r "$tmpDir"
