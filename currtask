@@ -1,0 +1,11 @@
+#!/bin/bash
+
+emacsclient --eval \
+"(if (and (boundp 'org-clock-marker) org-clock-marker)
+  (org-with-point-at org-clock-marker
+    (let ((str (buffer-substring-no-properties
+                (progn (org-back-to-heading t) (point))
+                (progn (org-end-of-subtree t t) (point)))))
+      (princ str)))
+  (princ \"No active clock.\"))" \
+| sed -e 's/^"//' -e 's/"$//' -e 's/\\n/\n/g' -e 's/\\t/\t/g'
