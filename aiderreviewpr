@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# Script to review a pull request (git branch) using Aider
+
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ -z "$CURRENT_BRANCH" ]; then
+  echo "Error: Unable to determine the current branch."
+  exit 1
+fi
+
+# Determine the base branch, defaulting to the main branch if not provided
+GIT_MAIN_BRANCH=$(git rev-parse --abbrev-ref origin/HEAD | sed 's@^origin/@@')
+BASE_BRANCH=${1:-$GIT_MAIN_BRANCH}
+if [ -z "$BASE_BRANCH" ]; then
+  echo "Error: Unable to determine the base branch."
+  exit 1
+fi
+
+# Check if the base branch exists
+if ! git show-ref --verify --quiet refs/heads/"$BASE_BRANCH"; then
+  echo "Error: Base branch '$BASE_BRANCH' does not exist."
+  exit 1
+fi
+
+PROMPT=$"/run git diff $BASE_BRANCH...$CURRENT_BRANCH
+y
+/run git diff --stat $BASE_BRANCH...$CURRENT_BRANCH
+y
+Review pull request $CURRENT_BRANCH against base branch $BASE_BRANCH
+"
+
+# Run Aider with the constructed prompt
+aider <<< "$PROMPT" || {
+  echo "Error: Aider command failed."
+  exit 1
+}
