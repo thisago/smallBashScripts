@@ -1,7 +1,14 @@
 #!/bin/bash
 
+show_locate=0
+
+if [ "$1" = "--locate" ]; then
+  show_locate=1
+  shift
+fi
+
 if [ -z "$1" ]; then
-  echo "Usage: $0 ORG_ID"
+  echo "Usage: $0 [--locate] ORG_ID"
   exit 1
 fi
 
@@ -23,4 +30,19 @@ elisp="
     (princ \"ID not found\")))
 "
 
-emacsclient --eval "$elisp" | sed -e 's/^"//' -e 's/"$//' | perl -pe 's/\\n/\n/g'
+result="$(emacsclient --eval "$elisp" | sed -e 's/^"//' -e 's/"$//' | perl -pe 's/\\n/\n/g')"
+
+if echo "$result" | grep -q "^ID not found$"; then
+  echo "ID not found"
+  exit 1
+fi
+
+if [ "$show_locate" -eq 1 ]; then
+  echo "$result"
+else
+  # Parse file, start, end from result
+  file=$(echo "$result" | sed -n '1p')
+  start=$(echo "$result" | sed -n '2p')
+  end=$(echo "$result" | sed -n '3p')
+  sed -n "${start},${end}p" "$file"
+fi
