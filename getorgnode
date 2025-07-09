@@ -10,7 +10,16 @@ org_id="$1"
 elisp="
 (let ((node (org-roam-node-from-id \"$org_id\")))
   (if node
-      (expand-file-name (org-roam-node-file node))
+      (with-current-buffer (find-file-noselect (org-roam-node-file node))
+        (save-excursion
+          (goto-char (org-roam-node-point node))
+          (let ((start (line-number-at-pos (point))))
+            (org-end-of-subtree t t)
+            (let ((end (line-number-at-pos (point))))
+              (princ (format \"%s\n%d\n%d\"
+                             (expand-file-name (org-roam-node-file node))
+                             start
+                             end))))))
     (princ \"ID not found\")))
 "
 
