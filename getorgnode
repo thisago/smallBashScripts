@@ -23,4 +23,4 @@ elisp="
     (princ \"ID not found\")))
 "
 
-emacsclient --eval "$elisp" | sed -e 's/^"//' -e 's/"$//'
+emacsclient --eval "$elisp" | sed -e 's/^"//' -e 's/"$//' | perl -pe 's/\\n/\n/g'
