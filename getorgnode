@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+  echo "Usage: $0 ORG_ID"
+  exit 1
+fi
+
+org_id="$1"
+
+emacsclient --eval "(let ((node (org-roam-node-from-id \"$org_id\"))) (if node (expand-file-name (org-roam-node-file node)) (princ \"ID not found\")))" | sed -e 's/^"//' -e 's/"$//'
