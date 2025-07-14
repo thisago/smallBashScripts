@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# Script to commit with a generated message
+
+extraPrompt="$*"
+if [[ "$extraPrompt" != "" ]]; then
+  echo "Extra prompt provided: $extraPrompt"
+  AIDER_COMMIT_PROMPT+="
+
+$extraPrompt"
+fi
+
+# Run Aider with the constructed prompt
+aider -m '/commit'
+if [[ $? -ne 0 ]]; then
+  echo "Aider commit failed. Please check the output above." >&2
+  exit 1
+fi
