@@ -2,6 +2,12 @@
 
 # This script runs `git gc` and reports the size of the `.git` directory before and after garbage collection.
 
+# Check if running from the root of a git repository
+if [ ! -d .git ]; then
+  echo "This script must be run from the root of a git repository."
+  exit 1
+fi
+
 originalSize="$(du -sh .git | awk '{printf "%s", $1}')"
 
 time git gc $@
