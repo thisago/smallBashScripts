@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 # resolveenv: Preprocess a .env file, resolving pass: references to secrets
 #
 # Usage:

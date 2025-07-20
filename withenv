@@ -4,7 +4,7 @@
 
 # Check if pass is available
 command -v pass &> /dev/null || {
-  echo "sourceenv: pass command not found." >&2
+  echo "withenv: pass command not found." >&2
   exit 1
 }
 
