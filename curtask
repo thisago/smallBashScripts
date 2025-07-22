@@ -10,4 +10,5 @@ orgMode="$(emacsclient --eval \
   (princ \"No active clock.\"))" | sed -e 's/^"//' -e 's/"$//')"
 
 echo -en "$orgMode" |
-  sed -ze 's/\nCLOCK:.*\n/\n/g'
+  sed -zE 's/\nCLOCK: [^\n]+//g' |
+  sed -zE 's/- (Note taken on [^\n]+|State [^\n]+)\\\\\n[ ]{2}/- /g'
