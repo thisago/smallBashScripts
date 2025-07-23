@@ -10,9 +10,7 @@ if [ -z "$author" ] || [ -z "$markdownText" ]; then
   exit 1
 fi
 
-# Ensure a blank line before any list for proper pandoc conversion
-markdownTextPreprocessed="$(echo -e "$markdownText" | sed '/^[^-].*$/ {N;/\n-/!b; s/\n/\n\n/;}')"
-orgMode="$(echo -e "$markdownTextPreprocessed" | pandoc -f markdown -t org)"
+orgMode="$(pandoc -f markdown -t org <<<"$markdownText")"
 note="noteby: =$author=
 $orgMode"
 
@@ -52,4 +50,10 @@ elisp="
     (message \"[noteby-emacs] No task is currently clocked in.\")))
 "
 
-emacsclient --eval "$elisp"
+emacsclient --eval "$elisp" >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to execute Emacs client command."
+  exit 1
+fi
+
+echo "Note added successfully."
