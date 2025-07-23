@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+# noteby - Crete notes on the clocked task via CLI
+
+author="$1"
+markdownText="$2"
+
+if [ -z "$author" ] || [ -z "$markdownText" ]; then
+  echo "Usage: $0 AUTHOR MULTI_LINE_MARKDOWN"
+  exit 1
+fi
+
+# Ensure a blank line before any list for proper pandoc conversion
+markdownTextPreprocessed="$(echo -e "$markdownText" | sed '/^[^-].*$/ {N;/\n-/!b; s/\n/\n\n/;}')"
+orgMode="$(echo -e "$markdownTextPreprocessed" | pandoc -f markdown -t org)"
+
+noteEscaped=$(sed 's/\\/\\\\/g; s/"/\\"/g; s/\n/\\n/g' <<<"noteby: =$author=\n$orgMode")
+
+if [ -z "$noteEscaped" ]; then
+  echo "Error: Note is empty after processing."
+  exit 1
+fi
+
+# Process:
+# - Receives the author and Org Mode text as arguments
+# - Retrieves the current clocked task
+# - If no task is clocked, it exits
+# - If a task is clocked, add a note with org-store-log-note, respecting org-add-note configs
+# - Saves the buffer containing the clocked task
+
+elisp="
+(let* ((note \"${noteEscaped}\"))
+    (if (org-clocking-p)
+        (let ((prev-buffer (current-buffer)))
+          (with-current-buffer (marker-buffer org-clock-marker)
+            (save-excursion
+              (goto-char org-clock-marker)
+              (org-back-to-heading t)
+              (move-marker org-log-note-marker (point)))
+              (setq org-log-note-purpose 'note
+                    org-log-note-effective-time (org-current-effective-time)
+                    org-log-note-how nil
+                    org-log-note-extra nil
+                    org-log-note-state nil
+                    org-log-note-previous-state nil)
+              (with-temp-buffer
+                (insert note)
+                (org-store-log-note)
+                (message \"[noteby-emacs] calling save-buffer\")
+                (save-buffer)
+                (message \"[noteby-emacs] calling bury-buffer\")
+                (bury-buffer))
+              (message \"[noteby-emacs] switching to prev-buffer: %S\" prev-buffer)
+              (switch-to-buffer prev-buffer))))
+      (message \"[noteby-emacs] No task is currently clocked in.\")))
+"
+
+emacsclient --eval "$elisp"
