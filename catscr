@@ -6,5 +6,5 @@ cd "/tmp"
 while true; do
   import -window root screenshot.png || return 1
   chafa -f symbols screenshot.png || return 1
-  sleep 5
+  sleep 2
 done

@@ -13,8 +13,10 @@ fi
 # Ensure a blank line before any list for proper pandoc conversion
 markdownTextPreprocessed="$(echo -e "$markdownText" | sed '/^[^-].*$/ {N;/\n-/!b; s/\n/\n\n/;}')"
 orgMode="$(echo -e "$markdownTextPreprocessed" | pandoc -f markdown -t org)"
+note="noteby: =$author=
+$orgMode"
 
-noteEscaped=$(sed 's/\\/\\\\/g; s/"/\\"/g; s/\n/\\n/g' <<<"noteby: =$author=\n$orgMode")
+noteEscaped=$(sed 's/\\/\\\\/g; s/"/\\"/g; s/\n/\\n/g' <<<"$note")
 
 if [ -z "$noteEscaped" ]; then
   echo "Error: Note is empty after processing."
@@ -30,29 +32,24 @@ fi
 
 elisp="
 (let* ((note \"${noteEscaped}\"))
-    (if (org-clocking-p)
-        (let ((prev-buffer (current-buffer)))
-          (with-current-buffer (marker-buffer org-clock-marker)
-            (save-excursion
-              (goto-char org-clock-marker)
-              (org-back-to-heading t)
-              (move-marker org-log-note-marker (point)))
-              (setq org-log-note-purpose 'note
-                    org-log-note-effective-time (org-current-effective-time)
-                    org-log-note-how nil
-                    org-log-note-extra nil
-                    org-log-note-state nil
-                    org-log-note-previous-state nil)
-              (with-temp-buffer
-                (insert note)
-                (org-store-log-note)
-                (message \"[noteby-emacs] calling save-buffer\")
-                (save-buffer)
-                (message \"[noteby-emacs] calling bury-buffer\")
-                (bury-buffer))
-              (message \"[noteby-emacs] switching to prev-buffer: %S\" prev-buffer)
-              (switch-to-buffer prev-buffer))))
-      (message \"[noteby-emacs] No task is currently clocked in.\")))
+  (if (org-clocking-p)
+      (let ((prev-buffer (current-buffer)))
+        (with-current-buffer (marker-buffer org-clock-marker)
+          (save-excursion
+            (goto-char org-clock-marker)
+            (org-back-to-heading t)
+            ;; Setup org's note system
+            (org-add-log-setup 'note)
+            ;; Create the *Org Note* buffer and finish
+            (org-add-log-note)
+            ;; Insert note into *Org Note* buffer and finish
+            (with-current-buffer \"*Org Note*\"
+              (erase-buffer)
+              (insert note)
+              (org-store-log-note))
+            (message \"[noteby-emacs] calling save-buffer\")
+            (save-buffer))))
+    (message \"[noteby-emacs] No task is currently clocked in.\")))
 "
 
 emacsclient --eval "$elisp"
