@@ -1,0 +1,387 @@
+#!/usr/bin/env bash
+
+# Intention driven terminal session recorder
+# Messy code ahead
+
+# Get current epoch time in seconds
+nowepoch() { date '+%s'; }
+# Get terminal size in format "cols x lines"
+term_size() { echo "$(tput cols)x$(tput lines)"; }
+# Build the asciinema cast file name.
+cast_file() {
+  local epoch="$1"
+  if ! test -n "$epoch"; then
+    epoch="$(nowepoch)"
+  fi
+
+  echo "$(date -d "@$epoch" '+%Y-%m-%d_%H-%M-%S').cast"
+}
+
+# Main function
+check_system() {
+  # Dependencies
+  for dep in asciinema jq bc gum; do
+    if ! command -v "$dep" &>/dev/null; then
+      echo "$dep is not on your path"
+      exit 1
+    fi
+  done
+
+  # Check if the directory is a git repository
+  if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+    echo "This script should be run inside a git repository."
+    exit 1
+  fi
+
+  # Environment variables
+  if ! test -n "$RECACT_ACTIONS"; then
+    RECACT_ACTIONS='check do write plan study tweak fix refactor feat improve polish test update clean clock unplanned describe investigate review play'
+  fi
+
+  if ! test -n "$RECACT_SCOPES"; then
+    echo "Set the RECACT_SCOPES with the space separated scopes in your environment."
+    echo "Setting to default."
+    RECACT_SCOPES='personal work'
+  fi
+}
+
+# CLI entry point
+parse_args() {
+  # Parse command line arguments
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --sh)
+        sh="$2"
+        shift 2
+        ;;
+      --action)
+        ACTION="$2"
+        shift 2
+        ;;
+      --scope)
+        SCOPE="$2"
+        shift 2
+        ;;
+      --summary)
+        SUMMARY="$2"
+        shift 2
+        ;;
+      --duration)
+        DURATION="$2"
+        shift 2
+        ;;
+      *)
+        echo "Unknown option: $1"
+        exit 1
+        ;;
+    esac
+  done
+
+  # Ensure sh is set
+  if ! test -n "$sh"; then
+    echo "Command to run is required. Use --sh <command>."
+    exit 1
+  fi
+}
+
+# Ask missing variables at the start of the session
+ask_missing_variables_start() {
+  if ! test -n "$ACTION"; then
+    ACTION=$(gum filter --no-strict $RECACT_ACTIONS \
+      --placeholder "Action type" \
+      --header 'What category of your intended action?')
+    test -n "$ACTION" || exit 1
+  fi
+
+  if ! test -n "$SCOPE"; then
+    SCOPE=$(gum filter --no-strict $RECACT_SCOPES \
+      --placeholder "Action scope" --header "The scope of your intention ($ACTION)")
+    test -n "$SCOPE" || exit 1
+  fi
+
+  if ! test -n "$SUMMARY"; then
+    SUMMARY=$(gum write --placeholder "Summarize your pretended task")
+    test -n "$SUMMARY" || exit 1
+  fi
+
+  if ! test -n "$DURATION"; then
+    while true; do
+      DURATION=$(gum input --placeholder="Expected duration in minutes")
+      if [[ "$DURATION" != "" ]] &&
+        [[ "$(echo "$DURATION" | bc 2>/dev/null)" == "$DURATION" ]]; then
+        break
+      fi
+      echo "Input should be a number"
+    done
+  fi
+}
+
+start_session() {
+  # Add the initial marker and terminal size to the cast file
+  lastSec=$(cat "$castFile" | tail -n1 | jq -r '.[0]')
+  pretend="$(date '+%H:%M:%S'): $SUMMARY"
+  markerJson=$(jq -nc --arg pretend "$pretend" \
+    '['$lastSec', "m", $pretend]')
+  echo "$markerJson" >>"$castFile"
+  resizeJson=$(jq -nc --arg size "$(term_size)" \
+    '['$lastSec', "r", $size]')
+  echo "$resizeJson" >>"$castFile"
+
+  # Provide an option to abort before entering the recording loop
+  echo "Press enter to continue or abort with C-c"
+  read continue
+
+  # Prompt for stdin capture
+  STDIN=$(gum confirm "Capture stdin?" && echo "--stdin")
+
+  # Save session state to file
+  jq -nc --arg startTime "$startEpoch" --arg pretend "$SUMMARY" --arg duration "$DURATION" --arg stdin "$STDIN" \
+    '{start: $startTime, pretend: $pretend, expectedDuration: $duration, stdin: ($stdin == "--stdin") }' >"$currentSessionTmpFile"
+
+  # Start asciinema recording, append to cast file
+  asciinema rec "$castFile" -c "$sh" --append $STDIN
+}
+
+# Load previous session if exists
+load_previous_session() {
+  SUMMARY="$(cat $currentSessionTmpFile | jq -r .pretend)"
+  DURATION="$(cat $currentSessionTmpFile | jq -r .expectedDuration)"
+  startEpoch="$(cat $currentSessionTmpFile | jq -r .start)"
+}
+
+main() {
+  # Check system dependencies and environment
+  check_system
+
+  # Parse command line arguments
+  parse_args "$@"
+
+  # Load the session state if it exists or ask for missing variables
+  if test -f "$currentSessionTmpFile"; then
+    echo "There's an unsaved session. Finish that before starting a new one."
+    load_previous_session
+  else
+    ask_missing_variables_start
+  fi
+
+  # Ensure all required variables are set
+  check_variables
+
+  # Check if the cast file already exists
+  if test -f "$castFile"; then
+    echo "Asciinema cast file $castFile already exists."
+    ask_to_stop
+  else
+    asciinema rec "$castFile" -c "date"
+  fi
+
+  # Session loop
+  while true; do
+    # Loop for the session recording
+    start_session
+
+    # Ask if user wants to stop the session
+    ask_to_stop
+
+    echo "Re-opening session"
+  done
+
+  # If we reach here, something went wrong as the `ask_to_stop` function should exit the script
+  echo "Unexpected end of script."
+  exit 1
+}
+
+# Ensure all variables are set, including those from user input. Used for development early checks.
+check_variables() {
+  vars=(
+    RECACT_ACTIONS
+    RECACT_SCOPES
+    sh
+    SUMMARY
+    DURATION
+    ACTION
+    SCOPE
+    STDIN
+    castFile
+    timestampsFile
+    currentSessionTmpFile
+    startEpoch
+  )
+  for var in ${vars[@]}; do
+    if ! test -n "${!var}"; then
+      echo "Variable $var is not set. This should not happen."
+      exit 1
+    fi
+  done
+}
+
+# Asks user to stop the current session and finishes it when confirmed. Aborts if not confirmed.
+ask_to_stop() {
+  if ! gum confirm "Stop current session?"; then
+    return
+  fi
+
+  # Save the current session state
+  # Debug: Show the session information
+  jq -c <"$currentSessionTmpFile"
+
+  # Prompt for what was actually done
+  while true; do
+    REALLYDID=$(gum write --placeholder "Summarize what you really did" --value "$REALLYDID")
+    if test -n "$REALLYDID" && grep -E '\.$' <<<"$REALLYDID"; then
+      # Remove trailing dot
+      REALLYDID="$(sed -r 's/^(.+)\.$/\1/' <<<"$REALLYDID")"
+      break
+    fi
+    echo "Write what you did, finish with a dot."
+  done
+
+  # Prompt for any extra description
+  REALLYDIDDESC=$(gum write --placeholder "Any extra description?")
+
+  # Calculate elapsed time and check if duration exceeded
+  endEpoch="$(nowepoch)"
+  mins="$(echo "(($endEpoch - $startEpoch) / 60)" | bc)"
+  whyExceeded=""
+  if [[ "$mins" -gt "$DURATION" ]]; then
+    while true; do
+      whyExceeded=$(gum write --placeholder "Why you exceeded the expected duration?")
+      test -n "$whyExceeded" && break
+      echo "This field cannot be blank"
+    done
+  fi
+
+  # Ask if session was productive, and if not, why
+  wasProductive="yes"
+  whyNotProductive=""
+  if ! gum confirm "Does you got productive?"; then
+    wasProductive="no"
+    while true; do
+      whyNotProductive=$(gum write --placeholder "Please tell your mistakes")
+      test -n "$whyNotProductive" && break
+      echo "This field cannot be blank"
+    done
+  fi
+
+  # Log session data as JSON line
+  timestampJson=$(jq -nc --arg endTime "$endEpoch" --arg startTime "$startEpoch" \
+    --arg pretend "$SUMMARY" --arg did "$REALLYDID" --arg desc "$REALLYDIDDESC" \
+    --arg duration "$DURATION" --arg whyExceeded "$whyExceeded" --arg stdin "$STDIN" \
+    --arg wasProd "$wasProductive" --arg whyNotProd "$whyNotProductive" \
+    '[ $startTime, $endTime, $pretend, $did, $desc, $wasProd == "yes", $whyNotProd, $duration, $whyExceeded, $stdin == "--stdin" ]')
+
+  echo "$timestampJson" >>"$timestampsFile"
+
+  # Show session summary and clean up
+  date
+  du -sh "$castFile"
+  rm -f "$currentSessionTmpFile"
+
+  # Prepare and perform git commit
+  productivityText="Was productive: $wasProductive"
+  if [[ "$wasProductive" == "no" ]]; then
+    productivityText="$productivityText; Why not: $whyNotProductive"
+  fi
+
+  git add "$castFile" "$timestampsFile"
+  git commit -m "$SUMMARY" \
+    -m "Really did: $REALLYDID" \
+    -m "$REALLYDIDDESC" \
+    -m "$productivityText" \
+    -m "Expected $DURATION and took $mins; $whyExceeded"
+
+  exit 0
+}
+
+# File and session setup
+timestampsFile="timestamps.jsonl"
+currentSessionTmpFile="session.json"
+startEpoch="$(nowepoch)"
+castFile="$(date '+%Y%m%d').cast"
+
+# If a session is already in progress, load it and skip to summary
+if test -f "$currentSessionTmpFile"; then
+  echo "There's an unsaved session. Finish that before starting a new one."
+  SUMMARY="$(cat $currentSessionTmpFile | jq -r .pretend)"
+  DURATION="$(cat $currentSessionTmpFile | jq -r .expectedDuration)"
+  startEpoch="$(cat $currentSessionTmpFile | jq -r .start)"
+fi
+
+castFile="$(cast_file "$startEpoch")"
+
+# If asciinema cast file exists, ask to continue or finish
+if test -f "$castFile"; then
+  echo "Asciinema cast file $castFile already exists."
+  ask_to_stop
+fi
+
+
+  # Prompt for action type
+  ACTION=$(gum filter --no-strict \
+    $RECACT_ACTIONS \
+    --placeholder "Action type" \
+    --header 'What category of your intended action?')
+  test -n "$ACTION" || exit 1
+
+  # Prompt for action scope
+  SCOPE=$(gum filter --no-strict $RECACT_SCOPES \
+    --placeholder "Action scope" --header "The scope of your intention ($ACTION)")
+  test -n "$SCOPE" || exit 1
+
+  # Prompt for summary of intended task
+  BASE="$ACTION($SCOPE): "
+  test -d "$timestampsFile" || touch "$timestampsFile"
+  SUMMARY=$(tac "$timestampsFile" | jq -r '.[2]' | awk -F, '!a[$1]++' |
+    gum filter --no-strict --value "$BASE" \
+      --placeholder "Summarize your pretended task" \
+      --no-fuzzy --width 50 --header "Summarize your intention ($SCOPE.$ACTION)")
+  test -n "$SUMMARY" || exit 1
+  [[ "$SUMMARY" = "$BASE" ]] && exit 1
+
+  # Prompt for expected duration (minutes)
+  while true; do
+    DURATION=$(gum input --placeholder="Expected duration in minutes")
+    if [[ "$DURATION" != "" ]] &&
+      [[ "$(echo "$DURATION" | bc 2>/dev/null)" == "$DURATION" ]]; then
+      break
+    fi
+    echo "Input should be a number"
+  done
+
+  # Debug: Show current date and cast file size
+  date
+  du -sh "$castFile"
+
+  # Add the marker and the terminal size to cast file
+  lastSec=$(cat "$castFile" | tail -n1 | jq -r '.[0]')
+  pretend="$(date '+%H:%M:%S'): $SUMMARY"
+  markerJson=$(jq -nc --arg pretend "$pretend" \
+    '['$lastSec', "m", $pretend]')
+  echo "$markerJson" >>"$castFile"
+  resizeJson=$(jq -nc --arg size "$(term_size)" \
+    '['$lastSec', "r", $size]')
+  echo "$resizeJson" >>"$castFile"
+
+  # Provide an option to abort before entering the recording loop
+  echo "Press enter to continue or abort with C-c"
+  read continue
+
+  # Main session recording loop
+  while true; do
+    # Prompt for stdin capture
+    STDIN=$(gum confirm "Capture stdin?" && echo "--stdin")
+
+    # Save session state to file
+    jq -nc --arg startTime "$startEpoch" --arg pretend "$SUMMARY" --arg duration "$DURATION" --arg stdin "$STDIN" \
+      '{start: $startTime, pretend: $pretend, expectedDuration: $duration, stdin: ($stdin == "--stdin") }' >"$currentSessionTmpFile"
+
+    # Start asciinema recording, append to cast file
+    asciinema rec "$castFile" -c "$sh" --append $STDIN
+
+    # Ask if user wants to stop the session
+    if gum confirm "Stop this session?"; then
+      break
+    fi
+    echo "Re-opening session"
+  done
+fi
