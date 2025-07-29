@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+# Script that waits RET to record a session on a specific command,
+# execute an post script and loops it again
+
+command="$1"
+postCommand="$2"
+if [[ ! -n "$command" ]] || [[ ! -n "$postCommand" ]]; then
+  echo "Usage: recloop COMMAND POST_COMMAND"
+  exit 1
+fi
+
+timestampsFile="timestamps.jsonl"
+
+while true; do
+  echo "Press RET to start"
+  read wait
+
+  castFile="$(date '+%Y%m%d').cast"
+  startEpoch="$(date '+%s')"
+
+  # Ensure asciinema cast file exists
+  if ! test -f "$castFile"; then
+    asciinema rec "$castFile" -c "date"
+  fi
+
+  # Add the marker and the terminal size to cast file
+  lastSec=$(cat "$castFile" | tail -n1 | jq -r '.[0]')
+  jq -nc --arg marker "$(date '+%H:%M:%S')" \
+    '['$lastSec', "m", $marker]' \
+    >>"$castFile"
+  jq -nc --arg size "$(tput cols)x$(tput lines)" \
+    '['$lastSec', "r", $size]' \
+    >>"$castFile"
+
+  while true; do
+    # Start asciinema recording, append to cast file
+    asciinema rec "$castFile" -c "$command" --append --stdin
+
+    if gum confirm "Done?"; then
+      break
+    fi
+  done
+
+  # Post
+  echo "Executing post command"
+  bash -c "$postCommand"
+
+  endEpoch="$(date '+%s')"
+
+  # Save session state to file
+  jq -nc --arg start "$startEpoch" --arg end "$endEpoch" \
+    '{start: $start, end: $end }' >>"$timestampsFile"
+
+  # Commit
+  git add "$castFile" "$timestampsFile"
+  git commit -m 'chore(tracks): add session'
+
+  echo "Done"
+done
