@@ -33,14 +33,8 @@ while true; do
     '['$lastSec', "r", $size]' \
     >>"$castFile"
 
-  while true; do
-    # Start asciinema recording, append to cast file
-    asciinema rec "$castFile" -c "$command" --append --stdin
-
-    if gum confirm "Done?"; then
-      break
-    fi
-  done
+  # Start asciinema recording, append to cast file
+  asciinema rec "$castFile" -c "$command" --append --stdin
 
   # Post
   echo "Executing post command"
