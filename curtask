@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# curtask - A script to display the Org clocked task from Emacs in the stdout
+
+# Check if Emacs Daemon is running
+if ! pgrep -x "emacs" > /dev/null; then
+  echo "Emacs daemon is not running. Please start it first."
+  exit 1
+fi
+
 orgMode="$(emacsclient --eval \
 "(if (and (boundp 'org-clock-marker) org-clock-marker)
   (org-with-point-at org-clock-marker

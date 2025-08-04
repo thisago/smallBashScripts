@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# getorgnode - Get Org Node by ID via CLI
+
+# Check if Emacs Daemon is running
+if ! pgrep -x "emacs" > /dev/null; then
+  echo "Emacs daemon is not running. Please start it first."
+  exit 1
+fi
+
 show_locate=0
 
 if [ "$1" = "--locate" ]; then

@@ -2,6 +2,12 @@
 
 # noteby - Crete notes on the clocked task via CLI
 
+# Check if Emacs Daemon is running
+if ! pgrep -x "emacs" > /dev/null; then
+  echo "Emacs daemon is not running. Please start it first."
+  exit 1
+fi
+
 author="$1"
 markdownText="$2"
 
