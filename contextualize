@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Provides relevant context for LLM CLI tools, mainly with Aider.
+
+# Get the current task description and notes
+curtask
+
+# Get the last Git commit messages, from last 7 days
+# Format: "## <commit-hash> (<author>, <time>)\n<subject>\n\n<body>"
+git log --since="7 days ago" --pretty=format:"## %h (%an, %ar)%n%s%n%n%b" | cat
+
+# Echo an extra instructions
+echo "Use `noteby <author> $'<note>'` to add a note to the current task."
