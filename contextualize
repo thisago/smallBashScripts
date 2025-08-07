@@ -2,12 +2,29 @@
 
 # Provides relevant context for LLM CLI tools, mainly with Aider.
 
-# Get the current task description and notes
-curtask
+# # Get the last Git commit messages, from last 7 days
+# # Format: "## <commit-hash> (<author>, <time>)\n<subject>\n\n<body>"
+# echo -e '# Recent Git Commits (last 7 days)\n```markdown'
+# git log --since="7 days ago" --pretty=format:"## %h (%an, %ar)%n%s%n%n%b" | cat
+# echo -e '```'
 
-# Get the last Git commit messages, from last 7 days
-# Format: "## <commit-hash> (<author>, <time>)\n<subject>\n\n<body>"
-git log --since="7 days ago" --pretty=format:"## %h (%an, %ar)%n%s%n%n%b" | cat
+# Get the current task description and notes
+task=$(curtask)
+
+# Loop over all matched Org IDs linked in the task ([[id:<ID>]]) and get their content
+while read -r org_id; do
+    if [[ -n "$org_id" ]]; then
+        echo -e "# \`getorgnode $org_id\`\n\`\`\`org"
+        getorgnode "$org_id"
+        echo -e '```'
+    fi
+done < <(echo "$task" | grep -oP '\[\[id:([^\]]+)\].*\]' | sed 's/.*id:\([^]]*\).*/\1/')
+
+# Echo the current task description
+echo -e '# Current Task\n```org'
+echo "$task"
+echo -e '```'
 
 # Echo an extra instructions
-echo "Use `noteby <author> $'<note>'` to add a note to the current task."
+echo "# Extra Instructions"
+echo "- Use \`noteby <author> $'<note>'\` to add a note to the current task."
