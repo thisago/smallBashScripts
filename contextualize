@@ -28,3 +28,4 @@ echo -e '```'
 # Echo an extra instructions
 echo "# Extra Instructions"
 echo "- Use \`noteby <author> $'<note>'\` to add a note to the current task."
+echo "- Use the repo map to find relevant files and directories. You can ask user to add files just by referencing their path."
