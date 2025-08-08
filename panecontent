@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Script that prints the tmux pane contents into stdout through a pane selection menu via gum
+
+# Check dependencies
+for dep in gum tmux; do
+  if ! command -v "$dep" &> /dev/null; then
+    echo "Error: $dep is not installed. Please install it first."
+    exit 1
+  fi
+done
+
+# Get all panes of the current window
+PANE_TITLES=$(tmux list-panes -F "#{pane_title}")
+
+# Let user select a pane
+SELECTED_PANE_TITLE=$(echo "$PANE_TITLES" | gum choose --header "Select a pane to view its contents")
+
+# Get the pane ID of the selected pane
+SELECTED_PANE_ID=$(tmux list-panes -F "#{pane_id} #{pane_title}" | grep "$SELECTED_PANE_TITLE" | awk '{print $1}')
+if [ -z "$SELECTED_PANE_ID" ]; then
+  echo "Error: Could not find the selected pane."
+  exit 1
+fi
+
+# Capture the contents of the selected pane
+tmux capture-pane -p -t "$SELECTED_PANE_ID"
