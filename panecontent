@@ -17,7 +17,9 @@ PANE_TITLES=$(tmux list-panes -F "#{pane_title}")
 SELECTED_PANE_TITLE=$(echo "$PANE_TITLES" | gum choose --header "Select a pane to view its contents")
 
 # Get the pane ID of the selected pane
-SELECTED_PANE_ID=$(tmux list-panes -F "#{pane_id} #{pane_title}" | grep "$SELECTED_PANE_TITLE" | awk '{print $1}')
+SELECTED_PANE_ID=$(tmux list-panes -F "#{pane_id} #{pane_title}" | \
+  grep -F "$SELECTED_PANE_TITLE" | \
+  awk '{print $1}')
 if [ -z "$SELECTED_PANE_ID" ]; then
   echo "Error: Could not find the selected pane."
   exit 1
