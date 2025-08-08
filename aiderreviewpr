@@ -26,7 +26,7 @@ PROMPT=$"/run git diff $BASE_BRANCH...$CURRENT_BRANCH
 y
 /run git diff --stat $BASE_BRANCH...$CURRENT_BRANCH
 y
-Review pull request $CURRENT_BRANCH against base branch $BASE_BRANCH
+Review pull request $CURRENT_BRANCH against base branch $BASE_BRANCH. I expect you to provide a detailed review of the changes, including potential issues, improvements, and overall code quality. Please summarize the changes in a structured format, highlighting any critical areas that need attention. Ensure to include the following sections: 1. Overview of Changes 2. Detailed File Summaries 3. Critical Issues and Suggestions 4. General Feedback. The review should be comprehensive and actionable, focusing on enhancing code quality and maintainability. Please also consider the context of the project and any relevant coding standards or best practices. If you encounter any issues or have questions about specific changes, please note them clearly in your review. Inspired by Code Review Best Practices, I expect suggestions for improvements, potential bugs, and any areas that could benefit from refactoring or additional tests. Please ensure your review is constructive and aimed at helping the author improve their code. If you find any areas that are particularly well done, please highlight those as well.
 "
 
 # Run Aider with the constructed prompt
