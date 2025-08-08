@@ -32,7 +32,7 @@ echo "" >> "$PR_SUMMARY_FILE"
 
 # Generate PR-wide summary
 PR_DIFF=$(git diff $BASE_BRANCH...$CURRENT_BRANCH)
-PR_SUMMARY_PROMPT="Summarize the following PR diff for context. List major changes as bullet points:\n$PR_DIFF"
+PR_SUMMARY_PROMPT=$(echo -e "Summarize the following PR diff for context. List major changes as bullet points:\n$PR_DIFF")
 echo "**Branch Diff Summary:**" >> "$PR_SUMMARY_FILE"
 if [ "$DRY_RUN" -eq 1 ]; then
   echo "[DRY RUN] Would run Aider with prompt:" >> "$PR_SUMMARY_FILE"
@@ -60,12 +60,13 @@ for COMMIT in $COMMITS; do
     if [ -f "$FILE_SUMMARY_DIR/$FILE.md" ]; then
       PREV_SUMMARY=$(cat "$FILE_SUMMARY_DIR/$FILE.md")
     fi
-    SUMMARY_PROMPT="Summarize the changes in $FILE for commit $COMMIT. List 'Changes' and 'Review' as bullet points. If $FILE was changed in previous commits, include those summaries as context:\nPrevious summaries:\n$PREV_SUMMARY\nCurrent diff:\n$DIFF\nCommit message:\n$FULL_MSG"
+    SUMMARY_PROMPT=$(echo -e "Summarize the changes in $FILE for commit $COMMIT. List 'Changes' and 'Review' as bullet points. If $FILE was changed in previous commits, include those summaries as context:\nPrevious summaries:\n$PREV_SUMMARY\nCurrent diff:\n$DIFF\nCommit message:\n$FULL_MSG")
     if [ "$DRY_RUN" -eq 1 ]; then
       echo "[DRY RUN] Would run Aider with prompt for $FILE in $COMMIT:" >> "$PR_SUMMARY_FILE"
       echo "$SUMMARY_PROMPT" >> "$PR_SUMMARY_FILE"
       echo "" >> "$PR_SUMMARY_FILE"
       # Append to file summary for dry run
+      mkdir -p "$FILE_SUMMARY_DIR/$(dirname "$FILE")"
       echo "$SUMMARY_PROMPT" >> "$FILE_SUMMARY_DIR/$FILE.md"
     else
       SUMMARY=$(aider <<< "$SUMMARY_PROMPT")
@@ -89,7 +90,7 @@ CHANGED_FILES=$(git diff --name-only $BASE_BRANCH...$CURRENT_BRANCH)
 for FILE in $CHANGED_FILES; do
   CONTEXT=$(cat "$PR_SUMMARY_FILE"; cat "$FILE_SUMMARY_DIR/$FILE.md")
   DIFF=$(git diff $BASE_BRANCH...$CURRENT_BRANCH -- $FILE)
-  CRITIQUE_PROMPT="Given this context (PR summary and all commit/file summaries for $FILE), and the diff for $FILE, list possible issues as bullet points, considering all changes.\nContext:\n$CONTEXT\nDiff:\n$DIFF"
+  CRITIQUE_PROMPT=$(echo -e "Given this context (PR summary and all commit/file summaries for $FILE), and the diff for $FILE, list possible issues as bullet points, considering all changes.\nContext:\n$CONTEXT\nDiff:\n$DIFF")
   if [ "$DRY_RUN" -eq 1 ]; then
     echo "[DRY RUN] Would run Aider with critique prompt for $FILE:" >> "$CRITIQUE_FILE"
     echo "$CRITIQUE_PROMPT" >> "$CRITIQUE_FILE"
@@ -107,5 +108,5 @@ cat "$PR_SUMMARY_FILE"
 echo -e "\n\n"
 cat "$CRITIQUE_FILE"
 
-# Cleanup
-rm -rf "$TMPDIR"
+# # Cleanup
+# rm -rf "$TMPDIR"
