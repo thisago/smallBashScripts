@@ -16,13 +16,8 @@ while true; do
   echo "Press RET to start"
   read wait
 
-  castFile="$(date '+%Y%m%d').cast"
   startEpoch="$(date '+%s')"
-
-  # Ensure asciinema cast file exists
-  if ! test -f "$castFile"; then
-    asciinema rec "$castFile" -c "date"
-  fi
+  castFile="$startEpoch.cast"
 
   # Add the marker and the terminal size to cast file
   lastSec=$(cat "$castFile" | tail -n1 | jq -r '.[0]')
@@ -33,8 +28,8 @@ while true; do
     '['$lastSec', "r", $size]' \
     >>"$castFile"
 
-  # Start asciinema recording, append to cast file
-  asciinema rec "$castFile" -c "$command" --append --stdin
+  # Start asciinema recording
+  asciinema rec "$castFile" -c "$command" --stdin
 
   # Post
   echo "Executing post command"
