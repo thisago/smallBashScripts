@@ -19,15 +19,6 @@ while true; do
   startEpoch="$(date '+%s')"
   castFile="$startEpoch.cast"
 
-  # Add the marker and the terminal size to cast file
-  lastSec=$(cat "$castFile" | tail -n1 | jq -r '.[0]')
-  jq -nc --arg marker "$(date '+%H:%M:%S')" \
-    '['$lastSec', "m", $marker]' \
-    >>"$castFile"
-  jq -nc --arg size "$(tput cols)x$(tput lines)" \
-    '['$lastSec', "r", $size]' \
-    >>"$castFile"
-
   # Start asciinema recording
   asciinema rec "$castFile" -c "$command" --stdin
 
