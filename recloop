@@ -16,8 +16,11 @@ while true; do
   echo "Press RET to start"
   read wait
 
+  castDir="$(date '+%Y%m%d')"
+  mkdir "$castDir"
+
   startEpoch="$(date '+%s')"
-  castFile="$startEpoch.cast"
+  castFile="$castDir/$startEpoch.cast"
 
   # Start asciinema recording
   asciinema rec "$castFile" -c "$command" --stdin
