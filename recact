@@ -141,8 +141,19 @@ start_session() {
   STDIN=$(gum confirm "Capture stdin?" && echo "--stdin")
 
   # Save session state to file
-  jq -nc --arg startTime "$startEpoch" --arg pretend "$SUMMARY" --arg duration "$DURATION" --arg stdin "$STDIN" \
-    '{start: $startTime, pretend: $pretend, expectedDuration: $duration, stdin: ($stdin == "--stdin") }' >"$currentSessionTmpFile"
+  jq -nc \
+    --arg startTime "$startEpoch" \
+    --arg pretend "$SUMMARY" \
+    --arg duration "$DURATION" \
+    --arg stdin "$STDIN" \
+    --arg castFile "$castFile" \
+    '{
+       start: $startTime,
+       pretend: $pretend,
+       expectedDuration: $duration,
+       stdin: ($stdin == "--stdin"),
+       castFile: $castFile
+     }' >"$currentSessionTmpFile"
 
   # Check if the cast file already exists
   if test -f "$castFile"; then
