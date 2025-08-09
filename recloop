@@ -16,14 +16,29 @@ while true; do
   echo "Press RET to start"
   read wait
 
-  castDir="$(date '+%Y%m%d')"
-  test -d "$castDir" || mkdir "$castDir"
-
+  castFile="$(date '+%Y%m%d').cast"
   startEpoch="$(date '+%s')"
-  castFile="$castDir/$startEpoch.cast"
 
-  # Start asciinema recording
-  asciinema rec "$castFile" -c "$command" --stdin
+  # Ensure asciinema cast file exists
+  if ! test -f "$castFile"; then
+    asciinema rec "$castFile" -c "date"
+  fi
+
+  # Add the marker and the terminal size to cast file
+  lastSec=$(cat "$castFile" | tail -n1 | jq -r '.[0]')
+  jq -nc \
+    --arg marker "$(date '+%H:%M:%S')" \
+    --arg size "$(tput cols)x$(tput lines)" \
+    --arg ts "$lastSec" \
+    '[
+      [$ts | tonumber, "m", $marker],
+      [$ts | tonumber, "r", $size],
+      [$ts | tonumber + 1, "o", ""]
+     ][]' \
+    >>"$castFile"
+
+  # Start asciinema recording, append to cast file
+  asciinema rec "$castFile" -c "$command" --append --stdin
 
   # Post
   echo "Executing post command"
@@ -38,9 +53,6 @@ while true; do
   # Commit
   git add "$castFile" "$timestampsFile"
   git commit -m 'chore(tracks): add session'
-
-  # Delete the cast file to clean up
-  rm "$castFile"
 
   echo "Done"
 done
