@@ -45,5 +45,8 @@ while true; do
   git add "$castFile" "$timestampsFile"
   git commit -m 'chore(tracks): add session'
 
+  # Delete the cast file to clean up
+  rm "$castFile"
+
   echo "Done"
 done
