@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
 # Intention driven terminal session recorder
-# Messy code ahead
+
+# Globals
+timestampsFile="timestamps.jsonl"
+currentSessionTmpFile="session.json"
 
 # Get current epoch time in seconds
 nowepoch() { date '+%s'; }
@@ -14,7 +17,10 @@ cast_file() {
     epoch="$(nowepoch)"
   fi
 
-  echo "$(date -d "@$epoch" '+%Y-%m-%d_%H-%M-%S').cast"
+  castDir="$(date -d "@$epoch" '+%Y%m%d')"
+  test -d "$castDir" || mkdir "$castDir"
+
+  echo "$castDir/$epoch.cast"
 }
 
 # Main function
@@ -100,7 +106,15 @@ ask_missing_variables_start() {
   fi
 
   if ! test -n "$SUMMARY"; then
-    SUMMARY=$(gum write --placeholder "Summarize your pretended task")
+    # Prompt for summary of intended task
+    BASE="$ACTION($SCOPE): "
+    test -d "$timestampsFile" || touch "$timestampsFile"
+    SUMMARY=$(tac "$timestampsFile" | jq -r '.[2]' | awk -F, '!a[$1]++' |
+      gum filter --no-strict --value "$BASE" \
+        --placeholder "Summarize your pretended task" \
+        --no-fuzzy --width 50 --header "Summarize your intention ($SCOPE.$ACTION)")
+    test -n "$SUMMARY" || exit 1
+    [[ "$SUMMARY" = "$BASE" ]] && exit 1
     test -n "$SUMMARY" || exit 1
   fi
 
@@ -117,16 +131,8 @@ ask_missing_variables_start() {
 }
 
 start_session() {
-  # Add the initial marker and terminal size to the cast file
-  lastSec=$(cat "$castFile" | tail -n1 | jq -r '.[0]')
-  pretend="$(date '+%H:%M:%S'): $SUMMARY"
-  markerJson=$(jq -nc --arg pretend "$pretend" \
-    '['$lastSec', "m", $pretend]')
-  echo "$markerJson" >>"$castFile"
-  resizeJson=$(jq -nc --arg size "$(term_size)" \
-    '['$lastSec', "r", $size]')
-  echo "$resizeJson" >>"$castFile"
-
+  startEpoch="$(nowepoch)"
+  castFile="$(cast_file "$startEpoch")"
   # Provide an option to abort before entering the recording loop
   echo "Press enter to continue or abort with C-c"
   read continue
@@ -138,7 +144,16 @@ start_session() {
   jq -nc --arg startTime "$startEpoch" --arg pretend "$SUMMARY" --arg duration "$DURATION" --arg stdin "$STDIN" \
     '{start: $startTime, pretend: $pretend, expectedDuration: $duration, stdin: ($stdin == "--stdin") }' >"$currentSessionTmpFile"
 
+  # Check if the cast file already exists
+  if test -f "$castFile"; then
+    echo "Asciinema cast file $castFile already exists."
+    ask_to_stop
+  else
+    asciinema rec "$castFile" -c "date"
+  fi
+
   # Start asciinema recording, append to cast file
+  echo asciinema rec "$castFile" -c "$sh" $STDIN
   asciinema rec "$castFile" -c "$sh" --append $STDIN
 }
 
@@ -167,14 +182,6 @@ main() {
   # Ensure all required variables are set
   check_variables
 
-  # Check if the cast file already exists
-  if test -f "$castFile"; then
-    echo "Asciinema cast file $castFile already exists."
-    ask_to_stop
-  else
-    asciinema rec "$castFile" -c "date"
-  fi
-
   # Session loop
   while true; do
     # Loop for the session recording
@@ -199,13 +206,8 @@ check_variables() {
     sh
     SUMMARY
     DURATION
-    ACTION
-    SCOPE
-    STDIN
-    castFile
     timestampsFile
     currentSessionTmpFile
-    startEpoch
   )
   for var in ${vars[@]}; do
     if ! test -n "${!var}"; then
@@ -290,98 +292,10 @@ ask_to_stop() {
     -m "$productivityText" \
     -m "Expected $DURATION and took $mins; $whyExceeded"
 
+  # Delete commited file to free up space
+  rm "$castFile"
+
   exit 0
 }
 
-# File and session setup
-timestampsFile="timestamps.jsonl"
-currentSessionTmpFile="session.json"
-startEpoch="$(nowepoch)"
-castFile="$(date '+%Y%m%d').cast"
-
-# If a session is already in progress, load it and skip to summary
-if test -f "$currentSessionTmpFile"; then
-  echo "There's an unsaved session. Finish that before starting a new one."
-  SUMMARY="$(cat $currentSessionTmpFile | jq -r .pretend)"
-  DURATION="$(cat $currentSessionTmpFile | jq -r .expectedDuration)"
-  startEpoch="$(cat $currentSessionTmpFile | jq -r .start)"
-fi
-
-castFile="$(cast_file "$startEpoch")"
-
-# If asciinema cast file exists, ask to continue or finish
-if test -f "$castFile"; then
-  echo "Asciinema cast file $castFile already exists."
-  ask_to_stop
-fi
-
-
-  # Prompt for action type
-  ACTION=$(gum filter --no-strict \
-    $RECACT_ACTIONS \
-    --placeholder "Action type" \
-    --header 'What category of your intended action?')
-  test -n "$ACTION" || exit 1
-
-  # Prompt for action scope
-  SCOPE=$(gum filter --no-strict $RECACT_SCOPES \
-    --placeholder "Action scope" --header "The scope of your intention ($ACTION)")
-  test -n "$SCOPE" || exit 1
-
-  # Prompt for summary of intended task
-  BASE="$ACTION($SCOPE): "
-  test -d "$timestampsFile" || touch "$timestampsFile"
-  SUMMARY=$(tac "$timestampsFile" | jq -r '.[2]' | awk -F, '!a[$1]++' |
-    gum filter --no-strict --value "$BASE" \
-      --placeholder "Summarize your pretended task" \
-      --no-fuzzy --width 50 --header "Summarize your intention ($SCOPE.$ACTION)")
-  test -n "$SUMMARY" || exit 1
-  [[ "$SUMMARY" = "$BASE" ]] && exit 1
-
-  # Prompt for expected duration (minutes)
-  while true; do
-    DURATION=$(gum input --placeholder="Expected duration in minutes")
-    if [[ "$DURATION" != "" ]] &&
-      [[ "$(echo "$DURATION" | bc 2>/dev/null)" == "$DURATION" ]]; then
-      break
-    fi
-    echo "Input should be a number"
-  done
-
-  # Debug: Show current date and cast file size
-  date
-  du -sh "$castFile"
-
-  # Add the marker and the terminal size to cast file
-  lastSec=$(cat "$castFile" | tail -n1 | jq -r '.[0]')
-  pretend="$(date '+%H:%M:%S'): $SUMMARY"
-  markerJson=$(jq -nc --arg pretend "$pretend" \
-    '['$lastSec', "m", $pretend]')
-  echo "$markerJson" >>"$castFile"
-  resizeJson=$(jq -nc --arg size "$(term_size)" \
-    '['$lastSec', "r", $size]')
-  echo "$resizeJson" >>"$castFile"
-
-  # Provide an option to abort before entering the recording loop
-  echo "Press enter to continue or abort with C-c"
-  read continue
-
-  # Main session recording loop
-  while true; do
-    # Prompt for stdin capture
-    STDIN=$(gum confirm "Capture stdin?" && echo "--stdin")
-
-    # Save session state to file
-    jq -nc --arg startTime "$startEpoch" --arg pretend "$SUMMARY" --arg duration "$DURATION" --arg stdin "$STDIN" \
-      '{start: $startTime, pretend: $pretend, expectedDuration: $duration, stdin: ($stdin == "--stdin") }' >"$currentSessionTmpFile"
-
-    # Start asciinema recording, append to cast file
-    asciinema rec "$castFile" -c "$sh" --append $STDIN
-
-    # Ask if user wants to stop the session
-    if gum confirm "Stop this session?"; then
-      break
-    fi
-    echo "Re-opening session"
-  done
-fi
+main "$@"
