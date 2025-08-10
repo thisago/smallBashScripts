@@ -14,16 +14,16 @@ task=$(curtask)
 # Loop over all matched Org IDs linked in the task ([[id:<ID>]]) and get their content
 while read -r org_id; do
     if [[ -n "$org_id" ]]; then
-        echo -e "# \`getorgnode $org_id\`\n\`\`\`org"
+        echo -e "# \`getorgnode $org_id\`\n\`\`\`\`markdown"
         getorgnode "$org_id"
-        echo -e '```'
+        echo -e '````'
     fi
 done < <(echo "$task" | grep -oP '\[\[id:([^\]]+)\].*\]' | sed 's/.*id:\([^]]*\).*/\1/')
 
 # Echo the current task description
-echo -e '# Current Task\n```org'
+echo -e '# Current Task\n````markdown'
 echo "$task"
-echo -e '```'
+echo -e '````'
 
 # Echo an extra instructions
 echo "# Extra Instructions"

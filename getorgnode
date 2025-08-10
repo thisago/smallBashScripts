@@ -53,6 +53,9 @@ else
   start=$(echo "$result" | sed -n '2p')
   end=$(echo "$result" | sed -n '3p')
   sed -n "${start},${end}p" "$file" |
-    sed -zE 's/\nCLOCK: [^\n]+//g' |
-    sed -zE 's/- (Note taken on [^\n]+|State [^\n]+)(\\\\\n[ ]{2})?/- /g'
+    sed -zE 's/\nCLOCK: [^\n]+//g' | # Remove CLOCK lines
+    sed -zE 's/- (Note taken on [^\n]+|State [^\n]+)(\\\\\n[ ]{2})?/- /g' | # Clean up state change and note lines
+    sed -r 's/:(LOGBOOK|PROPERTIES|ID):(.*)//g' | # Remove the block boundaries that gets ignored by pandoc
+    sed -r 's/:END:/-----/g' | # Add a separator between logbook and content
+    pandoc -f org -t gfm # Convert to GitHub Flavored Markdown
 fi
