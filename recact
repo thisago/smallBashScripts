@@ -23,7 +23,25 @@ cast_file() {
   echo "$castDir/$epoch.cast"
 }
 
-# Main function
+# Ensure all variables are set, including those from user input. Used for development early checks.
+check_variables() {
+  vars=(
+    RECACT_ACTIONS
+    RECACT_SCOPES
+    sh
+    SUMMARY
+    DURATION
+    timestampsFile
+    currentSessionTmpFile
+  )
+  for var in ${vars[@]}; do
+    if ! test -n "${!var}"; then
+      echo "Variable $var is not set. This should not happen."
+      exit 1
+    fi
+  done
+}
+
 check_system() {
   # Dependencies
   for dep in asciinema jq bc gum; do
@@ -130,104 +148,6 @@ ask_missing_variables_start() {
   fi
 }
 
-start_session() {
-  startEpoch="$(nowepoch)"
-  castFile="$(cast_file "$startEpoch")"
-  # Provide an option to abort before entering the recording loop
-  echo "Press enter to continue or abort with C-c"
-  read continue
-
-  # Prompt for stdin capture
-  STDIN=$(gum confirm "Capture stdin?" && echo "--stdin")
-
-  # Save session state to file
-  jq -nc \
-    --arg startTime "$startEpoch" \
-    --arg pretend "$SUMMARY" \
-    --arg duration "$DURATION" \
-    --arg stdin "$STDIN" \
-    --arg castFile "$castFile" \
-    '{
-       start: $startTime,
-       pretend: $pretend,
-       expectedDuration: $duration,
-       stdin: ($stdin == "--stdin"),
-       castFile: $castFile
-     }' >"$currentSessionTmpFile"
-
-  # Check if the cast file already exists
-  if test -f "$castFile"; then
-    echo "Asciinema cast file $castFile already exists."
-    ask_to_stop
-  else
-    asciinema rec "$castFile" -c "date"
-  fi
-
-  # Start asciinema recording, append to cast file
-  echo asciinema rec "$castFile" -c "$sh" $STDIN
-  asciinema rec "$castFile" -c "$sh" --append $STDIN
-}
-
-# Load previous session if exists
-load_previous_session() {
-  SUMMARY="$(cat $currentSessionTmpFile | jq -r .pretend)"
-  DURATION="$(cat $currentSessionTmpFile | jq -r .expectedDuration)"
-  startEpoch="$(cat $currentSessionTmpFile | jq -r .start)"
-}
-
-main() {
-  # Check system dependencies and environment
-  check_system
-
-  # Parse command line arguments
-  parse_args "$@"
-
-  # Load the session state if it exists or ask for missing variables
-  if test -f "$currentSessionTmpFile"; then
-    echo "There's an unsaved session. Finish that before starting a new one."
-    load_previous_session
-  else
-    ask_missing_variables_start
-  fi
-
-  # Ensure all required variables are set
-  check_variables
-
-  # Session loop
-  while true; do
-    # Loop for the session recording
-    start_session
-
-    # Ask if user wants to stop the session
-    ask_to_stop
-
-    echo "Re-opening session"
-  done
-
-  # If we reach here, something went wrong as the `ask_to_stop` function should exit the script
-  echo "Unexpected end of script."
-  exit 1
-}
-
-# Ensure all variables are set, including those from user input. Used for development early checks.
-check_variables() {
-  vars=(
-    RECACT_ACTIONS
-    RECACT_SCOPES
-    sh
-    SUMMARY
-    DURATION
-    timestampsFile
-    currentSessionTmpFile
-  )
-  for var in ${vars[@]}; do
-    if ! test -n "${!var}"; then
-      echo "Variable $var is not set. This should not happen."
-      exit 1
-    fi
-  done
-}
-
 # Asks user to stop the current session and finishes it when confirmed. Aborts if not confirmed.
 ask_to_stop() {
   if ! gum confirm "Stop current session?"; then
@@ -307,6 +227,85 @@ ask_to_stop() {
   rm "$castFile"
 
   exit 0
+}
+
+start_session() {
+  startEpoch="$(nowepoch)"
+  castFile="$(cast_file "$startEpoch")"
+  # Provide an option to abort before entering the recording loop
+  echo "Press enter to continue or abort with C-c"
+  read continue
+
+  # Prompt for stdin capture
+  STDIN=$(gum confirm "Capture stdin?" && echo "--stdin")
+
+  # Save session state to file
+  jq -nc \
+    --arg startTime "$startEpoch" \
+    --arg pretend "$SUMMARY" \
+    --arg duration "$DURATION" \
+    --arg stdin "$STDIN" \
+    --arg castFile "$castFile" \
+    '{
+       start: $startTime,
+       pretend: $pretend,
+       expectedDuration: $duration,
+       stdin: ($stdin == "--stdin"),
+       castFile: $castFile
+     }' >"$currentSessionTmpFile"
+
+  # Check if the cast file already exists
+  if test -f "$castFile"; then
+    echo "Asciinema cast file $castFile already exists."
+    ask_to_stop
+  else
+    asciinema rec "$castFile" -c "date"
+  fi
+
+  # Start asciinema recording, append to cast file
+  echo asciinema rec "$castFile" -c "$sh" $STDIN
+  asciinema rec "$castFile" -c "$sh" --append $STDIN
+}
+
+# Load previous session if exists
+load_previous_session() {
+  SUMMARY="$(cat $currentSessionTmpFile | jq -r .pretend)"
+  DURATION="$(cat $currentSessionTmpFile | jq -r .expectedDuration)"
+  startEpoch="$(cat $currentSessionTmpFile | jq -r .start)"
+}
+
+main() {
+  # Check system dependencies and environment
+  check_system
+
+  # Parse command line arguments
+  parse_args "$@"
+
+  # Load the session state if it exists or ask for missing variables
+  if test -f "$currentSessionTmpFile"; then
+    echo "There's an unsaved session. Finish that before starting a new one."
+    load_previous_session
+  else
+    ask_missing_variables_start
+  fi
+
+  # Ensure all required variables are set
+  check_variables
+
+  # Session loop
+  while true; do
+    # Loop for the session recording
+    start_session
+
+    # Ask if user wants to stop the session
+    ask_to_stop
+
+    echo "Re-opening session"
+  done
+
+  # If we reach here, something went wrong as the `ask_to_stop` function should exit the script
+  echo "Unexpected end of script."
+  exit 1
 }
 
 main "$@"
