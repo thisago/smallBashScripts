@@ -20,6 +20,12 @@ orgMode="$(emacsclient --eval \
 echo -en "$orgMode" |
   sed -zE 's/\nCLOCK: [^\n]+//g' | # Remove CLOCK lines
   sed -zE 's/- (Note taken on [^\n]+|State [^\n]+)(\\\\\n[ ]{2})?/- /g' | # Clean up state change and note lines
-  sed -r 's/:(LOGBOOK|PROPERTIES|ID):(.*)//g' | # Remove the block boundaries that gets ignored by pandoc
-  sed -r 's/:END:/-----/g' | # Add a separator between logbook and content
+  awk '
+    BEGIN {del=0; removed=0}
+    !removed && /^:PROPERTIES:/ {del=1; removed=1; next}
+    del && /^:END:/ {del=0; next}
+    !del
+  ' | # Remove PROPERTIES block
+  sed -r 's/:(LOGBOOK):(.*)/-----\n--- BEGIN NOTES BLOCK ---/g' | # Replace LOGBOOK header with a custom header
+  sed -r 's/:END:/--- END OF NOTES BLOCK ---\n-----\n--- BEGIN OF TASK DESCRIPTION BLOCK ---\n\n/' | # Add an end header for the logbook and start of task description
   pandoc -f org -t gfm # Convert to GitHub Flavored Markdown
