@@ -9,7 +9,7 @@ if [[ -z "$prompt" ]]; then
 fi
 
 # Run Aider with the constructed prompt
-aider <<<"/run curtask
+aider <<<"/run contextualize
 y
 ${prompt}"
 if [[ $? -ne 0 ]]; then
