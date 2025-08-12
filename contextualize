@@ -2,13 +2,13 @@
 
 # Provides relevant context for LLM CLI tools, mainly with Aider.
 
+# Get the current task description and notes
+task=$(curtask)
+
 # Echo the current task description
 echo -e '# Current Task\n````markdown'
 echo "$task"
 echo -e '````'
-
-# Get the current task description and notes
-task=$(curtask)
 
 # Loop over all matched Org IDs linked in the task ([[id:<ID>]]) and get their content
 while read -r org_id; do
@@ -17,7 +17,7 @@ while read -r org_id; do
         getorgnode "$org_id"
         echo -e '````'
     fi
-done < <(echo "$task" | grep -oP '\[\[id:([^\]]+)\].*\]' | sed 's/.*id:\([^]]*\).*/\1/')
+done < <(echo "$task" | grep -oP '\]\(id:([^\]]+)\)' | sed -r 's/.*id:([^\)]*).*/\1/')
 
 # Get the last Git commit messages, from last 7 days
 # Format: "## <commit-hash> (<author>, <time>)\n<subject>\n\n<body>"
