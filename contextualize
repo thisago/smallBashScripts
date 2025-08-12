@@ -2,11 +2,10 @@
 
 # Provides relevant context for LLM CLI tools, mainly with Aider.
 
-# Get the last Git commit messages, from last 7 days
-# Format: "## <commit-hash> (<author>, <time>)\n<subject>\n\n<body>"
-echo -e '# Recent Git Commits (last 7 days)\n```markdown'
-git log --since="7 days ago" --pretty=format:"## %h (%an, %ar)%n%s%n%n%b" | cat
-echo -e '```'
+# Echo the current task description
+echo -e '# Current Task\n````markdown'
+echo "$task"
+echo -e '````'
 
 # Get the current task description and notes
 task=$(curtask)
@@ -20,7 +19,8 @@ while read -r org_id; do
     fi
 done < <(echo "$task" | grep -oP '\[\[id:([^\]]+)\].*\]' | sed 's/.*id:\([^]]*\).*/\1/')
 
-# Echo the current task description
-echo -e '# Current Task\n````markdown'
-echo "$task"
-echo -e '````'
+# Get the last Git commit messages, from last 7 days
+# Format: "## <commit-hash> (<author>, <time>)\n<subject>\n\n<body>"
+echo -e '# Recent Git Commits (last 7 days)\n```markdown'
+git log --since="7 days ago" --pretty=format:"## %h (%an, %ar)%n%s%n%n%b" | cat
+echo -e '```'
