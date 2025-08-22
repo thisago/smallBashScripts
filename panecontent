@@ -10,34 +10,36 @@ for dep in gum tmux; do
   fi
 done
 
+PANE_FORMAT="#{pane_title}_#{pane_id}"
+
 # Get all panes of the current window
-PANE_TITLES=$(tmux list-panes -F "#{pane_title}")
+PANE_OPTIONS=$(tmux list-panes -F "$PANE_FORMAT")
 
 # If a number parameter is passed, use it as the selection index
 SELECTION_INDEX="$1"
 SELECTED_PANE_TITLE=""
 if [[ "$SELECTION_INDEX" =~ ^[0-9]+$ ]]; then
-  COUNT=$(echo "$PANE_TITLES" | wc -l)
+  COUNT=$(echo "$PANE_OPTIONS" | wc -l)
   # Check if the index is not in the range of available panes or is negative
-  if [ "$SELECTION_INDEX" -lt 0 ] || [ "$SELECTION_INDEX" - ge "$COUNT" ]; then
+  if [ "$SELECTION_INDEX" -lt 0 ] || [ "$SELECTION_INDEX" -ge "$COUNT" ]; then
     echo "Error: Invalid selection index. Please provide a valid index between 0 and $(($COUNT - 1))."
     exit 1
   else
     # Select the pane by index
-    SELECTED_PANE_TITLE=$(echo "$PANE_TITLES" | sed -n "$((SELECTION_INDEX + 1))p")
-    if [ -z "$SELECTED_PANE_TITLE" ]; then
+    SELECTED_PANE=$(echo "$PANE_OPTIONS" | sed -n "$((SELECTION_INDEX + 1))p")
+    if [ -z "$SELECTED_PANE" ]; then
       echo "Error: Could not find a pane with index $SELECTION_INDEX."
       exit 1
     fi
   fi
 else
   # Let user select a pane
-  SELECTED_PANE_TITLE=$(echo "$PANE_TITLES" | gum choose --header "Select a pane to view its contents")
+  SELECTED_PANE=$(echo "$PANE_OPTIONS" | gum choose --header "Select a pane to view its contents")
 fi
 
 # Get the pane ID of the selected pane
-SELECTED_PANE_ID=$(tmux list-panes -F "#{pane_id} #{pane_title}" | \
-  grep -F "$SELECTED_PANE_TITLE" | \
+SELECTED_PANE_ID=$(tmux list-panes -F "#{pane_id} $PANE_FORMAT" | \
+  grep -F "$SELECTED_PANE" | \
   awk '{print $1}')
 if [ -z "$SELECTED_PANE_ID" ]; then
   echo "Error: Could not find the selected pane."
