@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 
-getImage() {
-  xclip -selection clipboard -t image/png -o
-}
+# Extremely simple alias to get text from clipboard image using Tesseract OCR
 
-text="$(getImage | tesseract - - $@)"
-
-if [[ "$text" != "" ]]; then
-  echo "$text" | xclip -selection clipboard
-  echo "$text"
-fi
+clipimg | tesseract - - $@
