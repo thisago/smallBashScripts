@@ -230,7 +230,7 @@ ask_to_stop() {
 }
 
 start_session() {
-  startEpoch="$(nowepoch)"
+  startEpoch="$1"
   castFile="$(cast_file "$startEpoch")"
   # Provide an option to abort before entering the recording loop
   echo "Press enter to continue or abort with C-c"
@@ -281,6 +281,9 @@ main() {
   # Parse command line arguments
   parse_args "$@"
 
+  # Set start time before loading previous session to allow override
+  startEpoch="$(nowepoch)"
+
   # Load the session state if it exists or ask for missing variables
   if test -f "$currentSessionTmpFile"; then
     echo "There's an unsaved session. Finish that before starting a new one."
@@ -295,7 +298,7 @@ main() {
   # Session loop
   while true; do
     # Loop for the session recording
-    start_session
+    start_session "$startEpoch"
 
     # Ask if user wants to stop the session
     ask_to_stop
