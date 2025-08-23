@@ -25,10 +25,6 @@ while true; do
   # Start asciinema recording
   asciinema rec "$castFile" -c "$command" --stdin
 
-  # Post
-  echo "Executing post command"
-  bash -c "$postCommand"
-
   endEpoch="$(date '+%s')"
 
   # Save session state to file
@@ -41,6 +37,10 @@ while true; do
 
   # Delete the cast file to clean up
   rm "$castFile"
+
+  # Post
+  echo "Executing post command"
+  bash -c "$postCommand"
 
   echo "Done"
 done
