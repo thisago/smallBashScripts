@@ -254,11 +254,8 @@ start_session() {
        castFile: $castFile
      }' >"$currentSessionTmpFile"
 
-  # Check if the cast file already exists
-  if test -f "$castFile"; then
-    echo "Asciinema cast file $castFile already exists."
-    ask_to_stop
-  else
+  # Create asciicast if not exists to allow appending
+  if ! test -f "$castFile"; then
     asciinema rec "$castFile" -c "date"
   fi
 
