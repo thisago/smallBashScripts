@@ -7,7 +7,7 @@ task=$(curtask)
 
 # Echo the current task description
 echo -e '# Current Task\n````markdown'
-echo "$task" | pandoc -f markdown -t gfm
+echo "$task" | pandoc -f org -t gfm
 echo -e '````'
 
 # Loop over all matched Org IDs linked in the task ([[id:<ID>]]) and get their content
