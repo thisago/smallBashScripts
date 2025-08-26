@@ -19,9 +19,9 @@ if ! pass show "$PASS_KEY" &>/dev/null; then
 fi
 
 # Create a temporary file for the kubeconfig, will be cleaned up upon exit
-KUBECONFIG_TMP="$(mktemp kubeconfig.XXXXXXXX)"
-
+KUBECONFIG_TMP="$(mktemp)"
 pass show "$PASS_KEY" > "$KUBECONFIG_TMP"
+chmod 600 "$KUBECONFIG_TMP"
 
 cleanup() {
   rm -f "$KUBECONFIG_TMP"
