@@ -27,5 +27,4 @@ echo -en "$orgMode" |
     !del
   ' | # Remove PROPERTIES block
   sed -r 's/:(LOGBOOK):(.*)/-----\n--- BEGIN NOTES BLOCK ---/g' | # Replace LOGBOOK header with a custom header
-  sed -r 's/:END:/--- END OF NOTES BLOCK ---\n-----\n--- BEGIN OF TASK DESCRIPTION BLOCK ---\n\n/' | # Add an end header for the logbook and start of task description
-  pandoc -f org -t gfm # Convert to GitHub Flavored Markdown
+  sed -r 's/:END:/--- END OF NOTES BLOCK ---\n-----\n--- BEGIN OF TASK DESCRIPTION BLOCK ---\n\n/' # Add an end header for the logbook and start of task description

@@ -7,17 +7,17 @@ task=$(curtask)
 
 # Echo the current task description
 echo -e '# Current Task\n````markdown'
-echo "$task"
+echo "$task" | pandoc -f markdown -t gfm
 echo -e '````'
 
 # Loop over all matched Org IDs linked in the task ([[id:<ID>]]) and get their content
 while read -r org_id; do
-    if [[ -n "$org_id" ]]; then
-        echo -e "# \`getorgnode $org_id\`\n\`\`\`\`markdown"
-        getorgnode "$org_id"
-        echo -e '````'
-    fi
-done < <(echo "$task" | grep -oP '\]\(id:([^\]]+)\)' | sed -r 's/.*id:([^\)]*).*/\1/')
+  if [[ -n "$org_id" ]]; then
+    echo -e "# \`getorgnode $org_id\`\n\`\`\`\`markdown"
+    getorgnode "$org_id"
+    echo -e '````'
+  fi
+done < <(echo "$task" | grep -oP '\[\[id:([^\]]+)\].*\]' | sed 's/.*id:\([^]]*\).*/\1/')
 
 # Get the last Git commit messages, from last 3 days
 # Format: "## <commit-hash> (<author>, <time>)\n<subject>\n\n<body>"
