@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Use a kubeconfig from pass in $1 for any K8s tool, cleaning up after
+
+# Exit immediately if any command fails.
+set -e
+
+if [[ $# -lt 2 ]]; then
+  echo "Usage: $0 pass/key [command...]"
+  exit 1
+fi
+
+PASS_KEY="$1"
+shift
+
+if ! pass show "$PASS_KEY" &>/dev/null; then
+  echo "Error: Pass secret '$PASS_KEY' not found." >&2
+  exit 2
+fi
+
+# Create a temporary file for the kubeconfig, will be cleaned up upon exit
+KUBECONFIG_TMP="$(mktemp kubeconfig.XXXXXXXX)"
+
+pass show "$PASS_KEY" > "$KUBECONFIG_TMP"
+
+cleanup() {
+  rm -f "$KUBECONFIG_TMP"
+}
+trap cleanup EXIT
+
+export KUBECONFIG="$KUBECONFIG_TMP"
+
+# Execute the original command the user supplied
+"$@"
