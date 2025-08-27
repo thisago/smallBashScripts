@@ -2,7 +2,8 @@
 
 # Script to commit with a generated message
 
-initialCommand="/run contextualize"
+initialCommand="/run contextualize
+y"
 extraPrompt="$*"
 if [[ "$extraPrompt" != "" ]]; then
   echo "Extra prompt provided: $extraPrompt"
