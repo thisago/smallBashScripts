@@ -2,9 +2,6 @@
 
 # This script captures the contents of the current tmux pane and opens a popup with Aider allowing you to chat about the pane contents.
 
-# TODO: Remove-me
-export AIDERONPANE_DIR=~/Documents/repos/aideronpane
-
 # Check if AIDERONPANE_DIR is set
 if ! test -n "$AIDERONPANE_DIR"; then
   echo "Set AIDERONPANE_DIR in your path for Aider history storage"
