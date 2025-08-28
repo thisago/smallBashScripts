@@ -74,30 +74,30 @@ parse_args() {
   # Parse command line arguments
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --sh)
-        sh="$2"
-        shift 2
-        ;;
-      --action)
-        ACTION="$2"
-        shift 2
-        ;;
-      --scope)
-        SCOPE="$2"
-        shift 2
-        ;;
-      --summary)
-        SUMMARY="$2"
-        shift 2
-        ;;
-      --duration)
-        DURATION="$2"
-        shift 2
-        ;;
-      *)
-        echo "Unknown option: $1"
-        exit 1
-        ;;
+    --sh)
+      sh="$2"
+      shift 2
+      ;;
+    --action)
+      ACTION="$2"
+      shift 2
+      ;;
+    --scope)
+      SCOPE="$2"
+      shift 2
+      ;;
+    --summary)
+      SUMMARY="$2"
+      shift 2
+      ;;
+    --duration)
+      DURATION="$2"
+      shift 2
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
     esac
   done
 
@@ -280,6 +280,9 @@ main() {
 
   # Set start time before loading previous session to allow override
   startEpoch="$(nowepoch)"
+
+  # Ensure the right git branch
+  git-set-branch-to-hostname
 
   # Load the session state if it exists or ask for missing variables
   if test -f "$currentSessionTmpFile"; then

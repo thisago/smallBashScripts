@@ -3,6 +3,8 @@
 # Script that waits RET to record a session on a specific command,
 # execute an post script and loops it again
 
+timestampsFile="timestamps.jsonl"
+
 command="$1"
 postCommand="$2"
 if [[ ! -n "$command" ]] || [[ ! -n "$postCommand" ]]; then
@@ -10,7 +12,8 @@ if [[ ! -n "$command" ]] || [[ ! -n "$postCommand" ]]; then
   exit 1
 fi
 
-timestampsFile="timestamps.jsonl"
+# Ensure the right git branch
+git-set-branch-to-hostname
 
 while true; do
   echo "Press RET to start"
