@@ -8,7 +8,7 @@ set -e
 
 # Configs
 bash_history_repo_dir="/home/$USER/Documents/repos/bash_history"
-workflows_repo_dir="/home/$USER/Documents/repos/asciicastss"
+workflows_repo_dir="/home/$USER/Documents/repos/asciicasts"
 workflows_dir="$workflows_repo_dir/workflow"
 recact_command='cd ~; tmux attach || tmux'
 commit_prepend='From recaction'
