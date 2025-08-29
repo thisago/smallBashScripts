@@ -22,6 +22,8 @@ saveHistory() {
   action="$1"
   echo -n 'Saving history...'
   cd "$bash_history_repo_dir"
+
+  git-set-branch-to-hostname
   git add .bash_history
   git commit -m "chore(history): session $action" -m "$commit_prepend" >/dev/null
   echo ' done'
@@ -31,9 +33,11 @@ if ! test -d "$workflows_dir"; then
   mkdir -p "$workflows_dir"
 
   cd "$workflows_repo_dir"
+
   git init
   echo "#+title: $HOSTNAME workflow actions" >readme.org
   git add readme.org
+  git-set-branch-to-hostname
   git commit -m 'docs: readme' -m "$commit_prepend"
   git remote add vf vf:thisago/asciicasts
 fi

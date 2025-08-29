@@ -14,8 +14,8 @@ third_repos_dir="$repos_dir/third"
 origin_name="vf"
 
 is_valid_repo() {
-  test -d '.git'
-  git remote get-url "$origin_name" &>/dev/null
+  git rev-parse --is-inside-work-tree
+  git remote get-url "$origin_name"
 }
 
 for base_repo in "$repos_dir"/*; do

@@ -37,13 +37,16 @@ git add "$outputSvg" "$outputRaw" || {
   echo "Failed to add files to git. Please check your git status."
   exit 1
 }
+
+git-set-branch-to-hostname || exit 1
+
 git commit -m "chore(shots): $dt" > /dev/null || {
   echo "Failed to commit changes to git. Please check your git status."
   exit 1
 }
 
 xclip -selection primary <<< "$outputSvg" || {
-  echo "Failed to copy SVG output to clipboard. Please check xclip installation."
+  echo "Failed to copy SVG output to clipboard. Please check xclip."
   exit 1
 }
 
