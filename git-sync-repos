@@ -27,26 +27,33 @@ for base_repo in "$repos_dir"/*; do
   echo "$base_repo"
   git-gc
   git push "$origin_name"
+  echo -e '\n'
 done
 
-# for mirror_repo in "$mirror_repos_dir"/*; do
-#   cd "$mirror_repo"
-#   if ! is_valid_repo; then
-#     echo "Skip $mirror_repo"
-#     continue
-#   fi
-#   echo "$mirror_repo"
-#   git-gc
-#   echo git push "$origin_name" --mirror # WARNING
-# done
+if [[ "$(ls "$mirror_repos_dir" | wc -l)" -gt "0" ]]; then
+  for mirror_repo in "$mirror_repos_dir"/*; do
+    cd "$mirror_repo"
+    if ! is_valid_repo; then
+      echo "Skip $mirror_repo"
+      continue
+    fi
+    echo "$mirror_repo"
+    git-gc
+    echo git push "$origin_name" --mirror # WARNING
+    echo -e '\n'
+  done
+fi
 
-# for third_repo in "$third_repos_dir"/*; do
-#   cd "$third_repo"
-#   if ! is_valid_repo; then
-#     echo "Skip $third_repo"
-#     continue
-#   fi
-#   echo "$third_repo"
-#   git-gc
-#   echo git push "$origin_name" --force --all
-# done
+if [[ "$(ls "$third_repos_dir" | wc -l)" -gt "0" ]]; then
+  for third_repo in "$third_repos_dir"/*; do
+    cd "$third_repo"
+    if ! is_valid_repo; then
+      echo "Skip $third_repo"
+      continue
+    fi
+    echo "$third_repo"
+    git-gc
+    echo git push "$origin_name" --force --all
+    echo -e '\n'
+  done
+fi
