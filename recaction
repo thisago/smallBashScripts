@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+# Convenience script for setupping asciicasts repo if needed
+# And recording without the need of `start.sh` file.
+
+# Exit immediately if any command fails.
+set -e
+
+# Configs
+bash_history_repo_dir="/home/$USER/Documents/repos/bash_history"
+workflows_repo_dir="/home/$USER/Documents/repos/asciicastss"
+workflows_dir="$workflows_repo_dir/workflow"
+recact_command='cd ~; tmux attach || tmux'
+commit_prepend='From recaction'
+
+if [[ "$RECACTION_GIT_REMOTE" == "" ]]; then
+  echo 'Please define RECACTION_GIT_REMOTE env with the Git server to push the recorded casts.'
+  exit 1
+fi
+
+saveHistory() {
+  action="$1"
+  echo -n 'Saving history...'
+  cd "$bash_history_repo_dir"
+  git add .bash_history
+  git commit -m "chore(history): session $action" -m "$commit_prepend" >/dev/null
+  echo ' done'
+}
+
+if ! test -d "$workflows_dir"; then
+  mkdir -p "$workflows_dir"
+
+  cd "$workflows_repo_dir"
+  git init
+  echo "#+title: $HOSTNAME workflow actions" >readme.org
+  git add readme.org
+  git commit -m 'docs: readme' -m "$commit_prepend"
+  git remote add vf vf:thisago/asciicasts
+fi
+
+saveHistory 'start'
+
+cd "$workflows_dir"
+time recact --sh "$recact_command"
+
+saveHistory 'end'

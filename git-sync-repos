@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+# Pushes the repos that contains `vf` origin following the directory rule:
+# - repos/*/ - shared. rebase not handled. i.e., personal
+# - repos/mirror/*/ - mirror repos, only available here. i.e., forks
+# - repos/third/*/ - force-pushes, my version is more updated. i.e., thirdwork
+
+# Exit immediately if any command fails.
+set -e
+
+repos_dir="/home/$USER/Documents/repos"
+mirror_repos_dir="$repos_dir/mirror"
+third_repos_dir="$repos_dir/third"
+origin_name="vf"
+
+is_valid_repo() {
+  test -d '.git'
+  git remote get-url "$origin_name" &>/dev/null
+}
+
+for base_repo in "$repos_dir"/*; do
+  cd "$base_repo"
+  if ! is_valid_repo; then
+    echo "Skip $base_repo"
+    continue
+  fi
+  echo "$base_repo"
+  git-gc
+  git push "$origin_name"
+done
+
+# for mirror_repo in "$mirror_repos_dir"/*; do
+#   cd "$mirror_repo"
+#   if ! is_valid_repo; then
+#     echo "Skip $mirror_repo"
+#     continue
+#   fi
+#   echo "$mirror_repo"
+#   git-gc
+#   echo git push "$origin_name" --mirror # WARNING
+# done
+
+# for third_repo in "$third_repos_dir"/*; do
+#   cd "$third_repo"
+#   if ! is_valid_repo; then
+#     echo "Skip $third_repo"
+#     continue
+#   fi
+#   echo "$third_repo"
+#   git-gc
+#   echo git push "$origin_name" --force --all
+# done
