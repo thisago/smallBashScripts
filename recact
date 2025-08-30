@@ -4,7 +4,7 @@
 
 # Globals
 timestampsFile="timestamps.jsonl"
-currentSessionTmpFile="session.json"
+currentSessionTmpFile=~/session.json
 
 # Get current epoch time in seconds
 nowepoch() { date '+%s'; }
