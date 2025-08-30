@@ -3,9 +3,6 @@
 # Convenience script for setupping asciicasts repo if needed
 # And recording without the need of `start.sh` file.
 
-# Exit immediately if any command fails.
-set -e
-
 # Configs
 bash_history_repo_dir="/home/$USER/Documents/repos/bash_history"
 workflows_repo_dir="/home/$USER/Documents/repos/asciicasts"
@@ -23,7 +20,7 @@ saveHistory() {
   echo -n 'Saving history...'
   cd "$bash_history_repo_dir"
 
-  git-set-branch-to-hostname
+  git-set-branch-to-hostname || exit 1
   git add .bash_history
   git commit -m "chore(history): session $action" -m "$commit_prepend" >/dev/null
   echo ' done'
@@ -37,7 +34,7 @@ if ! test -d "$workflows_dir"; then
   git init
   echo "#+title: $HOSTNAME workflow actions" >readme.org
   git add readme.org
-  git-set-branch-to-hostname
+  git-set-branch-to-hostname || exit 1
   git commit -m 'docs: readme' -m "$commit_prepend"
   git remote add vf vf:thisago/asciicasts
 fi
