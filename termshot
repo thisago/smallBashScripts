@@ -6,7 +6,7 @@ if ! test -n "$TERMSHOT_DIR"; then
 fi
 
 # Check if freeze is installed
-if ! command -v freeze &> /dev/null; then
+if ! command -v freeze &>/dev/null; then
   echo "freeze command not found. Please install it first."
   exit 1
 fi
@@ -24,12 +24,12 @@ outputRaw="$(realpath "shots/raw/$dt.ansi")"
 
 bytes="$(tmux capture-pane -pet 0)"
 
-echo "$bytes" | freeze -c "$configJson" -o "$outputSvg" -t 0 > /dev/null || {
+echo "$bytes" | freeze -c "$configJson" -o "$outputSvg" -t 0 >/dev/null || {
   echo "Failed to capture pane with freeze. Please check the command and configuration."
   exit 1
 }
 
-echo "$bytes" > "$outputRaw"
+echo "$bytes" >"$outputRaw"
 
 outputSvgName="$(basename "$outputSvg")"
 
@@ -38,14 +38,14 @@ git add "$outputSvg" "$outputRaw" || {
   exit 1
 }
 
-git-set-branch-to-hostname || exit 1
+git-set-branch-to-hostname &>/dev/null || exit 1
 
-git commit -m "chore(shots): $dt" > /dev/null || {
+git commit -m "chore(shots): $dt" >/dev/null || {
   echo "Failed to commit changes to git. Please check your git status."
   exit 1
 }
 
-xclip -selection primary <<< "$outputSvg" || {
+xclip -selection primary <<<"$outputSvg" || {
   echo "Failed to copy SVG output to clipboard. Please check xclip."
   exit 1
 }
