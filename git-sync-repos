@@ -33,10 +33,7 @@ done
 if [[ "$(ls "$mirror_repos_dir" | wc -l)" -gt "0" ]]; then
   for mirror_repo in "$mirror_repos_dir"/*; do
     cd "$mirror_repo"
-    if ! is_valid_repo; then
-      echo "Skip $mirror_repo"
-      continue
-    fi
+
     # git remote add local "vaultforge:fork/$(git remote get-url origin | sed -r 's/^.*(github.com|codeberg.org|gitlab.com|sr.ht|git.coom.tech|gh)(\/|:)~?([^\/]+).+$/\3/')-$(basename $PWD)" && git push local --mirror
 
     # Ensure there's origin remote (as it was cloned)
@@ -45,13 +42,23 @@ if [[ "$(ls "$mirror_repos_dir" | wc -l)" -gt "0" ]]; then
       echo "Skip $mirror_repo. No origin"
       continue
     fi
-    echo "$mirror_repo"
 
     # Get author/org and repo name
     repo_id="$(sed -r 's/(gh|(https?|ssh):\/\/)([^\/]+)\/([^\/]+)\/([^\/]+)/\4 \5/' <<<"$origin_url")"
     read repo_owner repo_name <<<"$repo_id"
+    if [[ -z "$repo_owner" ]] || [ -z "$repo_name" ]; then
+      echo "Skip $mirror_repo. No valid origin"
+      continue
+    fi
+
     vf_url="vf:fork/$repo_owner-$repo_name"
     git remote add vf "$vf_url"
+
+    if ! is_valid_repo; then
+      echo "Skip $mirror_repo"
+      continue
+    fi
+    echo "$mirror_repo"
 
     git-gc
 
