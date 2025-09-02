@@ -216,14 +216,12 @@ ask_to_stop() {
     productivityText="$productivityText; Why not: $whyNotProductive"
   fi
 
-  git add "$castFile" "$timestampsFile"
+  git add "$castFile" "$timestampsFile" && \
   git commit -m "$SUMMARY" \
     -m "Really did: $REALLYDID" \
     -m "$REALLYDIDDESC" \
     -m "$productivityText" \
-    -m "Expected $DURATION and took $mins; $whyExceeded"
-
-  # Delete commited file to free up space
+    -m "Expected $DURATION and took $mins; $whyExceeded" && \
   rm "$castFile"
 
   exit 0
