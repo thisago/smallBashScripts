@@ -26,7 +26,7 @@ while true; do
   castFile="$castDir/$startEpoch.cast"
 
   # Start asciinema recording
-  asciinema rec "$castFile" -c "$command" --stdin
+  time asciinema rec "$castFile" -c "$command" --stdin
 
   endEpoch="$(date '+%s')"
 
