@@ -1,0 +1,30 @@
+#!/usr/bin/env -S nim e --hints:off
+# -*- mode: nim -*-
+
+# Script that raises some interesting stats from a asciicast.
+# Unfortunately nimscript doesn't seems to support streams
+
+import std/[os, streams]
+
+proc main(args: seq[string]): int =
+  if args.len != 4:
+    echo "Usage:"
+    echo "  caststats [CAST FILE]"
+    return 1
+
+  let castFile = args[3]
+  if castFile.len <= 0 or not castFile.fileExists:
+    echo "Cast file doesn't exists"
+    return 1
+
+
+  var
+    strm = castFile.newFileStream fmRead
+    line = ""
+  while strm.readLine line:
+    echo line
+    break
+  strm.close()
+
+when isMainModule:
+  quit main(commandLineParams())
