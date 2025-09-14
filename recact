@@ -208,6 +208,7 @@ ask_to_stop() {
   # Show session summary and clean up
   date
   du -sh "$castFile"
+  caststats.nim "$castFile"
   rm -f "$currentSessionTmpFile"
 
   # Prepare and perform git commit
