@@ -13,6 +13,7 @@ type
     sec: float
   Stats = object
     eventsCount: Table[string, int] # event kind/count
+    lastSec: float
 
 proc extractEvents(strm: FileStream): seq[Event] =
   var line = strm.readLine
@@ -29,6 +30,7 @@ proc generateStats(events: seq[Event]): Stats =
       result.eventsCount[event.kind] = 1
     else:
       inc result.eventsCount[event.kind]
+  result.lastSec = events[^1].sec
 
 proc main(args: seq[string]): int =
   if args.len != 1:
