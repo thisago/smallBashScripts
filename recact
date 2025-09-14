@@ -208,7 +208,8 @@ ask_to_stop() {
   # Show session summary and clean up
   date
   du -sh "$castFile"
-  caststats.nim "$castFile"
+  castStats="$(caststats.nim "$castFile")"
+  jq <<<"$castStats"
   rm -f "$currentSessionTmpFile"
 
   # Prepare and perform git commit
@@ -222,7 +223,8 @@ ask_to_stop() {
     -m "Really did: $REALLYDID" \
     -m "$REALLYDIDDESC" \
     -m "$productivityText" \
-    -m "Expected $DURATION and took $mins; $whyExceeded" && \
+    -m "Expected $DURATION and took $mins; $whyExceeded" \
+    -m "$castStats" && \
   rm "$castFile"
 
   exit 0

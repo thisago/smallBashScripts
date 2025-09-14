@@ -34,11 +34,12 @@ while true; do
   jq -nc --arg start "$startEpoch" --arg end "$endEpoch" \
     '{start: $start, end: $end }' >>"$timestampsFile"
 
-  caststats.nim "$castFile"
+  castStats="$(caststats.nim "$castFile")"
+  jq <<<"$castStats"
 
   # Commit
   git add "$castFile" "$timestampsFile"
-  git commit -m 'chore(tracks): add session'
+  git commit -m 'chore(tracks): add session' -m "$castStats"
 
   # Delete the cast file to clean up
   rm "$castFile"
