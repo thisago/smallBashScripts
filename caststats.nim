@@ -48,7 +48,7 @@ proc main(args: seq[string]): int =
     events = strm.extractEvents
     stats = generateStats(events)
 
-  echo pretty %*stats
+  echo %*stats
 
 when isMainModule:
   quit main(commandLineParams())
