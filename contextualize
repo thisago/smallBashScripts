@@ -19,8 +19,9 @@ while read -r org_id; do
   fi
 done < <(echo "$task" | grep -oP '\[\[id:([^\]]+)\].*\]' | sed 's/.*id:\([^]]*\).*/\1/')
 
+
 # Get the last Git commit messages, from last 3 days
-# Format: "## <commit-hash> (<author>, <time>)\n<subject>\n\n<body>"
-echo -e '# Recent Git Commits (last 3 days)\n```markdown'
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+echo -e '# Recent Git Commits (last 3 days, at branch '$current_branch')\n```markdown'
 git log --since="3 days ago" --pretty=format:"## %h (%an, %ar)%n%s%n%n%b" | cat
 echo -e '```'
