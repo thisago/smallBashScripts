@@ -23,7 +23,7 @@ if [[ "$translateLang" = "" ]]; then
 fi
 
 # Call nsla to translate the input text
-translated="$(nsla "$1" "$translateLang" "$3" "0")"
+translated="$(nsla "$1" "$translateLang" "$3")"
 if [[ "$translated" = "" ]]; then
   echo "Translation failed or returned empty result."
   exit 1
@@ -50,7 +50,7 @@ if [[ "$backLanguage" = "" ]]; then
 fi
 
 # Call nsla to translate back the translated text to the original language
-translatedBack="$(nsla "$translatedText" "$backLanguage" "$translateLang" "0")"
+translatedBack="$(nsla "$translatedText" "$backLanguage" "$translateLang")"
 if [[ "$translatedBack" = "" ]]; then
   echo "Back translation failed or returned empty result."
   exit 1
