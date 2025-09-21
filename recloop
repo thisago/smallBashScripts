@@ -36,6 +36,7 @@ while true; do
 
   castStats="$(caststats.nim "$castFile")"
   jq <<<"$castStats"
+  du -sh "$castFile"
 
   # Commit
   git add "$castFile" "$timestampsFile"
