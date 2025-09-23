@@ -16,8 +16,8 @@ fi
 git-set-branch-to-hostname
 
 while true; do
-  echo "Press RET to start"
-  read wait
+  echo "Press RET to start with the written message"
+  read message
 
   castDir="$(date '+%Y%m%d')"
   test -d "$castDir" || mkdir "$castDir"
@@ -31,8 +31,8 @@ while true; do
   endEpoch="$(date '+%s')"
 
   # Save session state to file
-  jq -nc --arg start "$startEpoch" --arg end "$endEpoch" \
-    '{start: $start, end: $end }' >>"$timestampsFile"
+  jq -nc --arg start "$startEpoch" --arg end "$endEpoch" --arg msg "$message" \
+    '{start: $start, end: $end, message: $msg }' >>"$timestampsFile"
 
   castStats="$(caststats.nim "$castFile")"
   jq <<<"$castStats"
