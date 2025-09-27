@@ -181,7 +181,7 @@ ask_to_stop() {
   whyExceeded=""
   if [[ "$sessionDurationMinutes" -gt "$DURATION" ]]; then
     while true; do
-      whyExceeded=$(gum write --placeholder "Why you exceeded the expected duration? Expected ${DURATION}min but took ${sessionDurationMinutes}")
+      whyExceeded=$(gum write --placeholder "Why you exceeded the expected duration? Expected ${DURATION}min but took ${sessionDurationMinutes}min")
       test -n "$whyExceeded" && break
       echo "This field cannot be blank"
     done
