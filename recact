@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Intention driven terminal session recorder
+# Intention driven terminal session recordings
 
 # Globals
 timestampsFile="timestamps.jsonl"
@@ -158,12 +158,15 @@ ask_to_stop() {
   # Debug: Show the session information
   jq -c <"$currentSessionTmpFile"
 
+  didWhatSaid=$(gum confirm "Do you focused on the intention?" && echo 'yes')
+
   # Prompt for what was actually done
   while true; do
     REALLYDID=$(gum write --placeholder "Summarize what you really did" --value "$REALLYDID")
     if test -n "$REALLYDID" && grep -E '\.$' <<<"$REALLYDID"; then
       # Remove trailing dot
       REALLYDID="$(sed -r 's/^(.+)\.$/\1/' <<<"$REALLYDID")"
+      echo "$REALLYDID"
       break
     fi
     echo "Write what you did, finish with a dot."
@@ -171,14 +174,15 @@ ask_to_stop() {
 
   # Prompt for any extra description
   REALLYDIDDESC=$(gum write --placeholder "Any extra description?")
+  echo "$REALLYDIDDESC"
 
   # Calculate elapsed time and check if duration exceeded
   endEpoch="$(nowepoch)"
-  mins="$(echo "(($endEpoch - $startEpoch) / 60)" | bc)"
+  sessionDurationMinutes="$(echo "(($endEpoch - $startEpoch) / 60)" | bc)"
   whyExceeded=""
-  if [[ "$mins" -gt "$DURATION" ]]; then
+  if [[ "$sessionDurationMinutes" -gt "$DURATION" ]]; then
     while true; do
-      whyExceeded=$(gum write --placeholder "Why you exceeded the expected duration?")
+      whyExceeded=$(gum write --placeholder "Why you exceeded the expected duration? Expected $(DURATION)min but took $(sessionDurationMinutes)")
       test -n "$whyExceeded" && break
       echo "This field cannot be blank"
     done
@@ -187,7 +191,7 @@ ask_to_stop() {
   # Ask if session was productive, and if not, why
   wasProductive="yes"
   whyNotProductive=""
-  if ! gum confirm "Does you got productive?"; then
+  if ! gum confirm "Was you productive?"; then
     wasProductive="no"
     while true; do
       whyNotProductive=$(gum write --placeholder "Please tell your mistakes")
@@ -197,11 +201,19 @@ ask_to_stop() {
   fi
 
   # Log session data as JSON line
-  timestampJson=$(jq -nc --arg endTime "$endEpoch" --arg startTime "$startEpoch" \
-    --arg pretend "$SUMMARY" --arg did "$REALLYDID" --arg desc "$REALLYDIDDESC" \
-    --arg duration "$DURATION" --arg whyExceeded "$whyExceeded" --arg stdin "$STDIN" \
-    --arg wasProd "$wasProductive" --arg whyNotProd "$whyNotProductive" \
-    '[ $startTime, $endTime, $pretend, $did, $desc, $wasProd == "yes", $whyNotProd, $duration, $whyExceeded, $stdin == "--stdin" ]')
+  timestampJson=$(jq -nc \
+    --arg endTime "$endEpoch" \
+    --arg startTime "$startEpoch" \
+    --arg pretend "$SUMMARY" \
+    --arg did "$REALLYDID" \
+    --arg desc "$REALLYDIDDESC" \
+    --arg duration "$DURATION" \
+    --arg whyExceeded "$whyExceeded" \
+    --arg stdin "$STDIN" \
+    --arg wasProd "$wasProductive" \
+    --arg whyNotProd "$whyNotProductive" \
+    --arg didWhatSaid "$didWhatSaid" \
+    '[ $startTime, $endTime, $pretend, $did, $desc, $wasProd == "yes", $whyNotProd, $duration, $whyExceeded, $stdin == "--stdin", $didWhatSaid == "yes" ]')
 
   echo "$timestampJson" >>"$timestampsFile"
 
@@ -223,7 +235,7 @@ ask_to_stop() {
     -m "Really did: $REALLYDID" \
     -m "$REALLYDIDDESC" \
     -m "$productivityText" \
-    -m "Expected $DURATION and took $mins; $whyExceeded" \
+    -m "Expected $DURATION and took $sessionDurationMinutes; $whyExceeded" \
     -m "$castStats" && \
   rm "$castFile"
 
