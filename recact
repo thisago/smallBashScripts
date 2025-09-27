@@ -129,7 +129,7 @@ ask_missing_variables_start() {
     test -d "$timestampsFile" || touch "$timestampsFile"
     SUMMARY=$(tac "$timestampsFile" | jq -r '.[2]' | awk -F, '!a[$1]++' |
       gum filter --no-strict --value "$BASE" \
-        --placeholder "Summarize your pretended task" \
+        --placeholder 'Summarize your pretended task' \
         --no-fuzzy --width 50 --header "Summarize your intention ($SCOPE.$ACTION)")
     test -n "$SUMMARY" || exit 1
     [[ "$SUMMARY" = "$BASE" ]] && exit 1
@@ -173,16 +173,15 @@ ask_to_stop() {
   done
 
   # Prompt for any extra description
-  REALLYDIDDESC=$(gum write --placeholder "Any extra description?")
-  echo "$REALLYDIDDESC"
+  REALLYDIDDESC=$(gum write --placeholder 'Any extra description?')
 
   # Calculate elapsed time and check if duration exceeded
-  endEpoch="$(nowepoch)"
+  endEpoch=$(nowepoch)
   sessionDurationMinutes="$(echo "(($endEpoch - $startEpoch) / 60)" | bc)"
   whyExceeded=""
   if [[ "$sessionDurationMinutes" -gt "$DURATION" ]]; then
     while true; do
-      whyExceeded=$(gum write --placeholder "Why you exceeded the expected duration? Expected $(DURATION)min but took $(sessionDurationMinutes)")
+      whyExceeded=$(gum write --placeholder "Why you exceeded the expected duration? Expected ${DURATION}min but took ${sessionDurationMinutes}")
       test -n "$whyExceeded" && break
       echo "This field cannot be blank"
     done
@@ -194,7 +193,7 @@ ask_to_stop() {
   if ! gum confirm "Was you productive?"; then
     wasProductive="no"
     while true; do
-      whyNotProductive=$(gum write --placeholder "Please tell your mistakes")
+      whyNotProductive=$(gum write --placeholder 'Please tell your mistakes')
       test -n "$whyNotProductive" && break
       echo "This field cannot be blank"
     done
@@ -226,7 +225,7 @@ ask_to_stop() {
 
   # Prepare and perform git commit
   productivityText="Was productive: $wasProductive"
-  if [[ "$wasProductive" == "no" ]]; then
+  if [[ "$wasProductive" == 'no' ]]; then
     productivityText="$productivityText; Why not: $whyNotProductive"
   fi
 
@@ -246,7 +245,7 @@ record_session() {
   startEpoch="$1"
   castFile="$(cast_file "$startEpoch")"
   # Provide an option to abort before entering the recording loop
-  echo "Press enter to continue or abort with C-c"
+  echo 'Press enter to continue or abort with C-c'
   read continue
 
   # Prompt for stdin capture
@@ -269,7 +268,7 @@ record_session() {
 
   # Create asciicast if not exists to allow appending
   if ! test -f "$castFile"; then
-    asciinema rec "$castFile" -c "date"
+    asciinema rec "$castFile" -c 'date'
   fi
 
   # Start asciinema recording, append to cast file
@@ -279,9 +278,9 @@ record_session() {
 
 # Load previous session if exists
 load_previous_session() {
-  SUMMARY="$(cat $currentSessionTmpFile | jq -r .pretend)"
-  DURATION="$(cat $currentSessionTmpFile | jq -r .expectedDuration)"
-  startEpoch="$(cat $currentSessionTmpFile | jq -r .start)"
+  SUMMARY=$(cat $currentSessionTmpFile | jq -r .pretend)
+  DURATION=$(cat $currentSessionTmpFile | jq -r .expectedDuration)
+  startEpoch=$(cat $currentSessionTmpFile | jq -r .start)
 }
 
 main() {
@@ -292,7 +291,7 @@ main() {
   parse_args "$@"
 
   # Set start time before loading previous session to allow override
-  startEpoch="$(nowepoch)"
+  startEpoch=$(nowepoch)
 
   # Ensure the right git branch
   git-set-branch-to-hostname
@@ -316,11 +315,11 @@ main() {
     # Ask if user wants to stop the session
     ask_to_stop
 
-    echo "Re-opening session"
+    echo 'Re-opening session'
   done
 
   # If we reach here, something went wrong as the `ask_to_stop` function should exit the script
-  echo "Unexpected end of script."
+  echo 'Unexpected end of script.'
   exit 1
 }
 
