@@ -158,8 +158,6 @@ ask_to_stop() {
   # Debug: Show the session information
   jq -c <"$currentSessionTmpFile"
 
-  didWhatSaid=$(gum confirm "Do you focused on the intention?" && echo 'yes')
-
   # Prompt for what was actually done
   while true; do
     REALLYDID=$(gum write --placeholder "Summarize what you really did" --value "$REALLYDID")
@@ -174,6 +172,8 @@ ask_to_stop() {
 
   # Prompt for any extra description
   REALLYDIDDESC=$(gum write --placeholder 'Any extra description?')
+
+  didWhatSaid=$(gum confirm "Do you focused on the intention?" && echo 'yes')
 
   # Calculate elapsed time and check if duration exceeded
   endEpoch=$(nowepoch)
