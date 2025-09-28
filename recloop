@@ -4,11 +4,26 @@
 # execute an post script and loops it again
 
 timestampsFile="timestamps.jsonl"
+currentSessionTmpFile=~/session.json
 
-command="$1"
-postCommand="$2"
-if [[ ! -n "$command" ]] || [[ ! -n "$postCommand" ]]; then
-  echo "Usage: recloop COMMAND POST_COMMAND"
+intentionSummary="$1"
+expectedDuration="$2"
+command="$3"
+postCommand="$4"
+if ! test -n "$intentionSummary" || ! test -n "$expectedDuration" || ! test -n "$command" || ! test -n "$postCommand"; then
+  echo "Usage: recloop INTENTION_SUMMARY EXPECTED_DURATION COMMAND POST_COMMAND"
+  exit 1
+fi
+
+# Checks
+# Duration is number
+if [[ "$(echo "$expectedDuration" | bc 2>/dev/null)" != "$expectedDuration" ]]; then
+  echo "Input should be a number"
+  exit 1
+fi
+# Check if the directory is a git repository
+if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+  echo "This script should be run inside a git repository."
   exit 1
 fi
 
@@ -24,6 +39,20 @@ while true; do
 
   startEpoch="$(date '+%s')"
   castFile="$castDir/$startEpoch.cast"
+
+  # Save session state to file
+  jq -nc \
+    --arg startTime "$startEpoch" \
+    --arg pretend "$intentionSummary" \
+    --arg duration "$expectedDuration" \
+    --arg castFile "$castFile" \
+    '{
+       start: $startTime,
+       pretend: $pretend,
+       expectedDuration: $duration,
+       stdin: true,
+       castFile: $castFile
+     }' >"$currentSessionTmpFile"
 
   # Start asciinema recording
   time asciinema rec "$castFile" -c "$command" --stdin
@@ -44,6 +73,7 @@ while true; do
 
   # Delete the cast file to clean up
   rm "$castFile"
+  rm "$currentSessionTmpFile"
 
   # Post
   echo "Executing post command"
