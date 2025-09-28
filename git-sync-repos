@@ -60,7 +60,7 @@ if [[ "$(ls "$mirror_repos_dir" | wc -l)" -gt "0" ]]; then
     # If no local origin, create
     if ! git remote get-url "$origin_name" &>/dev/null; then
       # Get author/org and repo name
-      repo_id="$(sed -r 's/^(gh|(https?|ssh):\/\/)([^\/]+)\/([^\/]+)\/([^\/]+)\/?$/\4 \5/' <<<"$origin_url")"
+      repo_id="$(sed -r 's/^(gh|(https?|ssh|git):\/\/)([^\/]+)\/([^\/]+)\/([^\/\.]+)\/?(\.git)?$/\4 \5/' <<<"$origin_url")"
       read repo_owner repo_name <<<"$repo_id"
       if [[ -z "$repo_owner" ]] || [ -z "$repo_name" ]; then
         echo "Skip $mirror_repo. No valid origin"
