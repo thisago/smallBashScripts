@@ -5,6 +5,7 @@
 # Globals
 timestampsFile="timestamps.jsonl"
 currentSessionTmpFile=~/session.json
+EDITOR=nano
 
 # Get current epoch time in seconds
 nowepoch() { date '+%s'; }
