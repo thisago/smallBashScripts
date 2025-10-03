@@ -66,7 +66,11 @@ elisp=$(
     (if (get-buffer response-buffer-name)
         (with-current-buffer response-buffer-name
           (buffer-substring-no-properties (point-min) (point-max)))
-      "ERROR: No HTTP Response buffer found")))'
+      "ERROR: No HTTP Response buffer found")
+    ;; Clean up opened buffers
+    (when (get-buffer "*HTTP Response*") (kill-buffer "*HTTP Response*"))
+    (let ((buf (find-buffer-visiting "$file"))) (when buf (kill-buffer buf)))
+)))'
 EOF
 )
 
@@ -74,7 +78,7 @@ parse_restclient_output() {
   input="$1"
 
   # Accumulate the body as raw text, no expansion
-  local body=""
+  local body_json=""
   declare -A headers
   local method=""
   local host=""
@@ -87,7 +91,7 @@ parse_restclient_output() {
       if [[ "$line" =~ ^// ]]; then
         body_part_done=1
       else
-        body+="$line"
+        body_json+="$line"
       fi
     fi
     if [[ "$body_part_done" == "1" ]]; then
@@ -111,9 +115,6 @@ parse_restclient_output() {
       fi
     fi
   done <<<"$input"
-
-  # Preserve embedded \n and valid JSON for multiline text with jq -Rs
-  body_json=$body
 
   # Compose jq header map builder
   headers_object="{}"
