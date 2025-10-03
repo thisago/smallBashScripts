@@ -16,16 +16,35 @@ fi
 file="$1"
 query="$2"
 timeout="$3"
+shift 2
 
 # Set default timeout if unset, empty, not a valid integer
-eval_timeout() {
-  [[ "$timeout" =~ ^[0-9]+$ ]] && echo "$timeout" || echo "10"
-}
-timeout=$(eval_timeout)
+if [[ "$timeout" =~ ^[0-9]+$ ]]; then
+  shift 1
+else
+  timeout=10
+fi
 if test -z "$file" || test -z "$query"; then
   echo "Usage: restclient <HTTP FILE> <QUERY> [TIMEOUT_SECONDS]" >&2
   exit 1
 fi
+
+# Parse overrides from multi arg `--var <KEY> <VAL>`
+declare -A overrides
+while [[ "$1" == --var ]]; do
+  key="$2"
+  val="$3"
+  overrides["$key"]="$val"
+  shift 3
+done
+
+elisp_override=""
+for var in "${!overrides[@]}"; do
+  val="${overrides[$var]}"
+  esc_var=$(printf '%s' "$var" | sed 's/"/\\"/g')
+  esc_val=$(printf '%s' "$val" | sed 's/"/\\"/g')
+  elisp_override+="(restclient-set-var \"$esc_var\" \"$esc_val\") "
+done
 
 elisp=$(
   cat <<EOF
@@ -33,7 +52,8 @@ elisp=$(
   (find-file "$file")
   (goto-char (point-min))
   (search-forward "$query")
-  (restclient-http-send-current)
+  $elisp_override
+  (restclient-http-send-current) ;; you may use (restclient-http-send-current 'raw) if needed
   (let ((response-buffer-name "*HTTP Response*")
         (n 0)
         (max-n (* $timeout 10))) ;; max-n: timeout in tenths of seconds
@@ -53,6 +73,7 @@ EOF
 parse_restclient_output() {
   input="$1"
 
+  # Accumulate the body as raw text, no expansion
   local body=""
   declare -A headers
   local method=""
@@ -66,7 +87,7 @@ parse_restclient_output() {
       if [[ "$line" =~ ^// ]]; then
         body_part_done=1
       else
-        body+="$line\n"
+        body+="$line"
       fi
     fi
     if [[ "$body_part_done" == "1" ]]; then
@@ -90,7 +111,9 @@ parse_restclient_output() {
       fi
     fi
   done <<<"$input"
-  body_json=$(echo -e "$body" | sed ':a;N;$!ba;s/^\\s*//; s/\\s*$//')
+
+  # Preserve embedded \n and valid JSON for multiline text with jq -Rs
+  body_json=$body
 
   # Compose jq header map builder
   headers_object="{}"
@@ -102,7 +125,7 @@ parse_restclient_output() {
   done
 
   jq -n \
-    --argjson body "$body_json" \
+    --arg body "$body_json" \
     --arg method "$method" \
     --arg host "$host" \
     --arg url "$url" \
