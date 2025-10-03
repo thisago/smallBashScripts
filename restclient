@@ -53,7 +53,7 @@ elisp=$(
   (goto-char (point-min))
   (search-forward "$query")
   $elisp_override
-  (restclient-http-send-current) ;; you may use (restclient-http-send-current 'raw) if needed
+  (restclient-http-send-current)
   (let ((response-buffer-name "*HTTP Response*")
         (n 0)
         (max-n (* $timeout 10))) ;; max-n: timeout in tenths of seconds
@@ -63,14 +63,16 @@ elisp=$(
                     (= (buffer-size (get-buffer response-buffer-name)) 0)))
       (sleep-for 0.1)
       (setq n (+ n 1)))
-    (if (get-buffer response-buffer-name)
-        (with-current-buffer response-buffer-name
-          (buffer-substring-no-properties (point-min) (point-max)))
-      "ERROR: No HTTP Response buffer found")
-    ;; Clean up opened buffers
-    (when (get-buffer "*HTTP Response*") (kill-buffer "*HTTP Response*"))
-    (let ((buf (find-buffer-visiting "$file"))) (when buf (kill-buffer buf)))
-)))'
+    (let ((filebuf (find-buffer-visiting "$file")))
+      (if (get-buffer response-buffer-name)
+          (let ((output
+                 (with-current-buffer response-buffer-name
+                   (buffer-substring-no-properties (point-min) (point-max)))))
+            (kill-buffer response-buffer-name)
+            (when filebuf (kill-buffer filebuf))
+            output)
+        (when filebuf (kill-buffer filebuf))
+        "ERROR: No HTTP Response buffer found"))))'
 EOF
 )
 
@@ -136,7 +138,10 @@ parse_restclient_output() {
     '{
       body: $body,
       headers: $headers,
-      status: {code: ($status_code|tonumber), name: $status_name},
+      status: {
+        code: ($status_code|tonumber),
+        name: $status_name
+      },
       host: $host,
       method: $method,
       url: $url
