@@ -8,7 +8,7 @@ if ! pgrep -x "emacs" >/dev/null; then
   exit 1
 fi
 
-file="$1"
+file=$(realpath $1)
 query="$2"
 timeout="$3"
 shift 2
@@ -19,8 +19,8 @@ if [[ "$timeout" =~ ^[0-9]+$ ]]; then
 else
   timeout=10
 fi
-if test -z "$file" || test -z "$query"; then
-  echo "Usage: restclient <HTTP FILE> <QUERY> [TIMEOUT_SECONDS]" >&2
+if test -z "$file"; then
+  echo "Usage: restclient <HTTP FILE> [QUERY] [TIMEOUT_SECONDS]" >&2
   exit 1
 fi
 
@@ -67,7 +67,7 @@ elisp=$(
             (when filebuf (kill-buffer filebuf))
             output)
         (when filebuf (kill-buffer filebuf))
-        "ERROR: No HTTP Response buffer found"))))'
+        "ERROR: No HTTP Response buffer found"))))
 EOF
 )
 
