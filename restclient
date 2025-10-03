@@ -2,11 +2,6 @@
 
 # restclient - Runs Emacs restclient.el from CLI
 
-if ! test -n "$RESTCLIENT_DIR"; then
-  echo "Set RESTCLIENT_DIR in your path"
-  exit 1
-fi
-
 # Check if Emacs Daemon is running
 if ! pgrep -x "emacs" >/dev/null; then
   echo "Emacs daemon is not running. Please start it first."
