@@ -122,8 +122,18 @@ parse_restclient_output() {
       '.[$key] = $value' <<<"$headers_object")
   done
 
+  # Try to parse body as JSON
+  if echo "$body_json" | jq . >/dev/null 2>&1; then
+    is_body_json=true
+    parsed_body=$(echo "$body_json" | jq '.')
+  else
+    is_body_json=false
+    parsed_body=$(jq -n --arg raw "$body_json" '$raw')
+  fi
+
   jq -n \
-    --arg body "$body_json" \
+    --argjson body "$parsed_body" \
+    --argjson isBodyJson "$is_body_json" \
     --arg method "$method" \
     --arg host "$host" \
     --arg url "$url" \
@@ -132,6 +142,7 @@ parse_restclient_output() {
     --argjson headers "$headers_object" \
     '{
       body: $body,
+      isBodyJson: $isBodyJson,
       headers: $headers,
       status: {
         code: ($status_code|tonumber),
