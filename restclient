@@ -1,0 +1,123 @@
+#!/bin/bash
+
+# restclient - Runs Emacs restclient.el from CLI
+
+if ! test -n "$RESTCLIENT_DIR"; then
+  echo "Set RESTCLIENT_DIR in your path"
+  exit 1
+fi
+
+# Check if Emacs Daemon is running
+if ! pgrep -x "emacs" >/dev/null; then
+  echo "Emacs daemon is not running. Please start it first."
+  exit 1
+fi
+
+file="$1"
+query="$2"
+timeout="$3"
+
+# Set default timeout if unset, empty, not a valid integer
+eval_timeout() {
+  [[ "$timeout" =~ ^[0-9]+$ ]] && echo "$timeout" || echo "10"
+}
+timeout=$(eval_timeout)
+if test -z "$file" || test -z "$query"; then
+  echo "Usage: restclient <HTTP FILE> <QUERY> [TIMEOUT_SECONDS]" >&2
+  exit 1
+fi
+
+elisp=$(
+  cat <<EOF
+(progn
+  (find-file "$file")
+  (goto-char (point-min))
+  (search-forward "$query")
+  (restclient-http-send-current)
+  (let ((response-buffer-name "*HTTP Response*")
+        (n 0)
+        (max-n (* $timeout 10))) ;; max-n: timeout in tenths of seconds
+    ;; Wait/poll for buffer to appear (max timeout seconds)
+    (while (and (< n max-n)
+                (or (not (get-buffer response-buffer-name))
+                    (= (buffer-size (get-buffer response-buffer-name)) 0)))
+      (sleep-for 0.1)
+      (setq n (+ n 1)))
+    (if (get-buffer response-buffer-name)
+        (with-current-buffer response-buffer-name
+          (buffer-substring-no-properties (point-min) (point-max)))
+      "ERROR: No HTTP Response buffer found")))'
+EOF
+)
+
+parse_restclient_output() {
+  input="$1"
+
+  local body=""
+  declare -A headers
+  local method=""
+  local host=""
+  local url=""
+  local status_code=""
+  local status_name=""
+  local body_part_done=0
+  while IFS= read -r line; do
+    if [[ "$body_part_done" == "0" ]]; then
+      if [[ "$line" =~ ^// ]]; then
+        body_part_done=1
+      else
+        body+="$line\n"
+      fi
+    fi
+    if [[ "$body_part_done" == "1" ]]; then
+      comment="${line#// }"
+      if [[ "$comment" =~ ^(GET|POST|PUT|PATCH|DELETE|OPTIONS)[[:space:]](https?://[^ ]+) ]]; then
+        method="${BASH_REMATCH[1]}"
+        url="${BASH_REMATCH[2]}"
+        host=$(echo "$url" | awk -F/ '{print $3}')
+        continue
+      fi
+      regex="^HTTP/[0-9]+\.[0-9]+ ([0-9]+) (.+)$"
+      if [[ "$comment" =~ $regex ]]; then
+        status_code="${BASH_REMATCH[1]}"
+        status_name="${BASH_REMATCH[2]}"
+        continue
+      fi
+      if [[ "$comment" == *": "* ]]; then
+        k="${comment%%:*}"
+        v="${comment#*: }"
+        headers["$k"]="$v"
+      fi
+    fi
+  done <<<"$input"
+  body_json=$(echo -e "$body" | sed ':a;N;$!ba;s/^\\s*//; s/\\s*$//')
+
+  # Compose jq header map builder
+  headers_object="{}"
+  for k in "${!headers[@]}"; do
+    headers_object=$(jq \
+      --arg key "$k" \
+      --arg value "${headers[$k]}" \
+      '.[$key] = $value' <<<"$headers_object")
+  done
+
+  jq -n \
+    --argjson body "$body_json" \
+    --arg method "$method" \
+    --arg host "$host" \
+    --arg url "$url" \
+    --arg status_name "$status_name" \
+    --arg status_code "$status_code" \
+    --argjson headers "$headers_object" \
+    '{
+      body: $body,
+      headers: $headers,
+      status: {code: ($status_code|tonumber), name: $status_name},
+      host: $host,
+      method: $method,
+      url: $url
+    }'
+}
+
+result=$(emacsclient --eval "$elisp" | jq -r '.')
+parse_restclient_output "$result"
