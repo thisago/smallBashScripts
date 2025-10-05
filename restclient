@@ -2,13 +2,26 @@
 
 # restclient - Runs Emacs restclient.el from CLI
 
+if ! test -n "$RESTCLIENT_DIR"; then
+  echo "Set RESTCLIENT_DIR in your path"
+  exit 1
+fi
+
 # Check if Emacs Daemon is running
 if ! pgrep -x "emacs" >/dev/null; then
   echo "Emacs daemon is not running. Please start it first."
   exit 1
 fi
 
-file=$(realpath $1)
+file="$1"
+if ! test -f "$file"; then
+  file="$RESTCLIENT_DIR/$file"
+  if ! test -f "$file"; then
+    echo "File doesn't exists."
+    exit 1
+  fi
+fi
+
 query="$2"
 timeout="$3"
 shift 2
