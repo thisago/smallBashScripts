@@ -36,7 +36,7 @@ else
   timeout=10
 fi
 if test -z "$file"; then
-  echo "Usage: restclient <HTTP FILE> [QUERY] [TIMEOUT_SECONDS]" >&2
+  echo "Usage: restclient <HTTP FILE> [QUERY] [TIMEOUT_SECONDS] [--var <NAME> <VAL> ...]" >&2
   exit 1
 fi
 
