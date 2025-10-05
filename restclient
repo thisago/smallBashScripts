@@ -51,12 +51,17 @@ done
 
 elisp_override=""
 elisp_clean=""
+json_overrides="{}"
 for var in "${!overrides[@]}"; do
   val="${overrides[$var]}"
   esc_var=$(printf '%s' "$var" | sed 's/"/\\"/g')
   esc_val=$(printf '%s' "$val" | sed 's/"/\\"/g')
   elisp_override+="(restclient-set-var \"$esc_var\" \"$esc_val\") "
   elisp_clean+="(restclient-remove-var \"$esc_var\") "
+  json_overrides=$(jq \
+    --arg var "$var" \
+    --arg val "$val" \
+    '.[$var] = $val' <<<"$json_overrides")
 done
 
 elisp=$(
@@ -159,6 +164,7 @@ parse_restclient_output() {
     --arg status_text "$status_text" \
     --argjson status_code "$status_code" \
     --argjson headers "$headers_object" \
+    --argjson overrides "$json_overrides" \
     '{
       body: $body,
       isBodyJson: $isBodyJson,
@@ -169,7 +175,8 @@ parse_restclient_output() {
       },
       host: $host,
       method: $method,
-      url: $url
+      url: $url,
+      overrides: $overrides,
     }'
 }
 
