@@ -20,7 +20,9 @@ fi
 if ! test -f "$file"; then
   file="$RESTCLIENT_DIR/$file"
   if ! test -f "$file"; then
-    echo "File doesn't exists."
+    echo "Available http files:"
+    cd "$RESTCLIENT_DIR"
+    fd '.http$' | sed -r 's/^(.*).http$/  \1/'
     exit 1
   fi
 fi
