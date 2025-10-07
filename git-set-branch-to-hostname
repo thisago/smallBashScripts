@@ -29,6 +29,6 @@ if [[ "$current_branch" == "$branch" ]]; then
   exit 0
 fi
 
-git checkout -b "$branch"
-
-echo "Changed the branch from '$current_branch' to '$branch'"
+git checkout -b "$branch" && \
+echo "Changed the branch from '$current_branch' to '$branch'" || \
+echo "Failed to change branch from '$current_branch' to '$branch'"
