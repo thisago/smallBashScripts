@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# noteby - Crete notes on the clocked task via CLI
+# noteby - Crete notes on the Emacs clocked task via CLI
 
 # Check if Emacs Daemon is running
 if ! pgrep -x "emacs" > /dev/null; then

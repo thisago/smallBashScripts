@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-# aidercomit - Script to commit with a generated message
+# aidercomit - Commit with a LLM generated message
+
+# TODO: Rewrite using `opencode`.
 
 initialCommand="/run contextualize
 y"
