@@ -27,12 +27,9 @@ if ! test -f "$file"; then
   fi
 fi
 
-# --list-vars mode
+# --list-vars mode: List all variable definitions in the HTTP file
 if [[ "$1" == "--list-vars" || "$2" == "--list-vars" ]]; then
-  # List all variable definitions in the HTTP file
-  # Output: varname=value (simple text)
-  grep -E '^:[A-Za-z0-9_-]+\s*:?-?=?\s*.*$' "$file" | \
-    sed -E 's/^:([A-Za-z0-9_-]+)\s*:?-?=?\s*(.*)$/\1=\2/'
+  grep -E '^:[A-Za-z0-9_-]+\s*:?-?=?\s*.*$' "$file"
   exit 0
 fi
 
