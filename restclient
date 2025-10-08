@@ -29,7 +29,7 @@ fi
 
 # --list-vars mode: List all variable definitions in the HTTP file
 if [[ "$1" == "--list-vars" || "$2" == "--list-vars" ]]; then
-  grep -E '^:[A-Za-z0-9_-]+\s*:?-?=?\s*.*$' "$file"
+  grep -E '^([# ]+)?:[A-Za-z0-9_-]+\s*:?-?=?\s*.*$' "$file"
   exit 0
 fi
 
