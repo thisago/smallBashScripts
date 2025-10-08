@@ -1,7 +1,7 @@
 #!/usr/bin/env -S nim r --hints:off
 # -*- mode: nim -*-
 
-# caststats.nim - Script that raises some interesting stats from a asciicast.
+# caststats.nim - Stats about a asciicast.
 
 # Unfortunately nimscript doesn't seems to support streams
 # So the file is named ".nim" for the Nim compiler to work

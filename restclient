@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# restclient - Runs Emacs restclient.el from CLI
+# restclient - Runs Emacs =restclient.el= from CLI
 
 if ! test -n "$RESTCLIENT_DIR"; then
   echo "Set RESTCLIENT_DIR in your path"

@@ -5,43 +5,42 @@
 fd -t f . | while read -r file; do
   [[ "$file" =~ \.org$ ]] && continue
   header=$(grep -m1 "^# .\+ - .\+" "$file" || echo "# $file - /No description yet/")
-  # Remove '# ' and split
   data="${header#\# }"
-  basename="${file##*/}"
   description="${data#*- }"
-  echo "- [[file:./$basename][$basename]] :: $description"
+  loc=$(wc -l <"$file")
+  echo "- [[file:./$file][$file]] ($loc LoC) :: $description"
 done
 #+end_src
 
 #+RESULTS:
-- [[file:./aidercommit][aidercommit]] :: Script to commit with a generated message
-- [[file:./caststats.nim][caststats.nim]] :: Script that raises some interesting stats from a asciicast.
-- [[file:./catclipimg][catclipimg]] :: Prints clipboard image as ansi in terminal using ~chafa~.
-- [[file:./catscr][catscr]] :: Prints the screen screenshot as text in the terminal
-- [[file:./clipimg][clipimg]] :: Dead simple alias to get image from clipboard
-- [[file:./clipqr][clipqr]] :: Decodes clipboard QR code image to text
-- [[file:./contextualize][contextualize]] :: Provides relevant context for LLM CLI tools, mainly with Aider.
-- [[file:./curtask][curtask]] :: A script to display the Org clocked task from Emacs in the stdout
-- [[file:./epub2org][epub2org]] :: Unpacks EPUB, recurse its HTML files and packs into a single Org file.
-- [[file:./file-bps][file-bps]] :: Prints file bytes in a pretty format for each second
-- [[file:./files-per-sec][files-per-sec]] :: Prints the directory files count for each second
-- [[file:./getorgnode][getorgnode]] :: Get Org Node by ID via CLI
-- [[file:./gistclip][gistclip]] :: Create a GitHub Gist from a file path in the clipboard
-- [[file:./git-file-versions][git-file-versions]] :: Dumps all revisions of a Git tracked file into =/tmp/all_versions_exported=
-- [[file:./git-gc][git-gc]] :: Convenience script for =git gc= with a size comparison from before and after the GC.
-- [[file:./git-set-branch-to-hostname][git-set-branch-to-hostname]] :: Sets the branch of the current Git repo to the system hostname
-- [[file:./git-sync-repos][git-sync-repos]] :: Pushes the repos that contains =vf= origin following the directory rule.
-- [[file:./noteby][noteby]] :: Crete notes on the clocked task via CLI
-- [[file:./nsla][nsla]] :: traNSLAte: Libre Translate CLI client
-- [[file:./ocrclipimg][ocrclipimg]] :: Alias to get text from clipboard image using Tesseract OCR
-- [[file:./panecontent][panecontent]] :: Script that prints the tmux pane contents into stdout through a pane selection menu via gum
-- [[file:./recact][recact]] :: Intention driven terminal session recordings
-- [[file:./recaction][recaction]] :: Convenience script for calling ~recact~
-- [[file:./recloop][recloop]] :: Waits RET to record a session on a specific command, execute a post script and loops it again
-- [[file:./resolveenv][resolveenv]] :: Preprocess a .env file by resolving pass calls.
-- [[file:./restclient][restclient]] :: Runs Emacs restclient.el from CLI
-- [[file:./site2org][site2org]] :: Fetches a HTML page with ~wget~ and converts into Org with ~pandoc~.
-- [[file:./termshot][termshot]] :: Dumps current ~tmux~ pane and pipes into ~freeze~. Tip: Use a keybind.
-- [[file:./txtfix][txtfix]] :: Translate to a language then translate it back to "fix" the text using Libre Translate
-- [[file:./wk8s][wk8s]] :: Use a kubeconfig from ~pass~
-- [[file:./zerolog][zerolog]] :: Format zerolog JSON output with jq and highlight the non-JSON parts (generally the uncaught errors)
+- [[file:./aidercommit][aidercommit]] (24 LoC) :: Commit with a LLM generated message
+- [[file:./caststats.nim][caststats.nim]] (57 LoC) :: Stats about a asciicast.
+- [[file:./catclipimg][catclipimg]] (9 LoC) :: Prints clipboard image as ansi in terminal using ~chafa~.
+- [[file:./catscr][catscr]] (11 LoC) :: Prints the screen screenshot as text in the terminal
+- [[file:./clipimg][clipimg]] (5 LoC) :: Dead simple alias to get image from clipboard
+- [[file:./clipqr][clipqr]] (5 LoC) :: Decodes clipboard QR Code image to text
+- [[file:./contextualize][contextualize]] (27 LoC) :: Provides relevant context for LLM CLI tools, mainly with Aider.
+- [[file:./curtask][curtask]] (30 LoC) :: A script to display the Org clocked task from Emacs in the stdout
+- [[file:./epub2org][epub2org]] (58 LoC) :: Unpacks EPUB, recurse its HTML files and packs into a single Org file.
+- [[file:./file-bps][file-bps]] (26 LoC) :: Prints file bytes in a pretty format for each second
+- [[file:./files-per-sec][files-per-sec]] (24 LoC) :: Prints the directory files count for each second
+- [[file:./getorgnode][getorgnode]] (68 LoC) :: Get Org Node by ID via CLI
+- [[file:./gistclip][gistclip]] (56 LoC) :: Create a GitHub Gist from a file path in the clipboard
+- [[file:./git-file-versions][git-file-versions]] (49 LoC) :: Dumps all revisions of a Git tracked file into =/tmp/all_versions_exported=
+- [[file:./git-gc][git-gc]] (17 LoC) :: Convenience script for =git gc= with a size comparison from before and after the GC.
+- [[file:./git-set-branch-to-hostname][git-set-branch-to-hostname]] (35 LoC) :: Sets the branch of the current Git repo to the system hostname
+- [[file:./git-sync-repos][git-sync-repos]] (90 LoC) :: Pushes the repos that contains =vf= origin following the directory rule.
+- [[file:./noteby][noteby]] (65 LoC) :: Crete notes on the Emacs clocked task via CLI
+- [[file:./nsla][nsla]] (51 LoC) :: traNSLAte: Libre Translate CLI client
+- [[file:./ocrclipimg][ocrclipimg]] (5 LoC) :: Alias to get text from clipboard image using Tesseract OCR
+- [[file:./panecontent][panecontent]] (50 LoC) :: Script that prints the tmux pane contents into stdout through a pane selection menu via gum
+- [[file:./recact][recact]] (327 LoC) :: Intention driven terminal session recordings
+- [[file:./recaction][recaction]] (46 LoC) :: Convenience script for calling ~recact~
+- [[file:./recloop][recloop]] (82 LoC) :: Waits RET to record a session on a specific command, execute a post script and loops it again
+- [[file:./resolveenv][resolveenv]] (57 LoC) :: Preprocess a .env file by resolving pass calls.
+- [[file:./restclient][restclient]] (192 LoC) :: Runs Emacs =restclient.el= from CLI
+- [[file:./site2org][site2org]] (34 LoC) :: Fetches a HTML page with ~wget~ and converts into Org with ~pandoc~.
+- [[file:./termshot][termshot]] (55 LoC) :: Dumps current ~tmux~ pane and pipes into ~freeze~. Tip: Use a keybind.
+- [[file:./txtfix][txtfix]] (61 LoC) :: Translate to a language then translate it back to "fix" the text using Libre Translate
+- [[file:./wk8s][wk8s]] (34 LoC) :: Use a kubeconfig from ~pass~
+- [[file:./zerolog][zerolog]] (29 LoC) :: Format zerolog JSON output with jq and highlight the non-JSON parts (generally the uncaught errors)
