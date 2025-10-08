@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Script to commit with a generated message
+# aidercomit - Script to commit with a generated message
 
 initialCommand="/run contextualize
 y"

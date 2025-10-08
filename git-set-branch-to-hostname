@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-# Sets the branch of the git repo to the hostname
+# git-set-branch-to-hostname - Sets the branch of the current Git repo to the system hostname
+
 # Useful to prevent commiting in wrong branches on
 # repos as asciicasts, repot, etc...
 

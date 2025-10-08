@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Script that prints the tmux pane contents into stdout through a pane selection menu via gum
+# panecontent - Script that prints the tmux pane contents into stdout through a pane selection menu via gum
 
 # Check dependencies
 for dep in gum tmux; do

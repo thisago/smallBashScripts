@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-# Extremely simple alias to get text from clipboard image using Tesseract OCR
+# ocrclipimg - Alias to get text from clipboard image using Tesseract OCR
 
 clipimg | tesseract - - $@

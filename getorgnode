@@ -3,7 +3,7 @@
 # getorgnode - Get Org Node by ID via CLI
 
 # Check if Emacs Daemon is running
-if ! pgrep -x "emacs" > /dev/null; then
+if ! pgrep -x "emacs" >/dev/null; then
   echo "Emacs daemon is not running. Please start it first."
   exit 1
 fi
@@ -53,16 +53,16 @@ else
   start=$(echo "$result" | sed -n '2p')
   end=$(echo "$result" | sed -n '3p')
   sed -n "${start},${end}p" "$file" |
-      sed -zE 's/\nCLOCK: [^\n]+//g' | # Remove CLOCK lines
-      sed -zE 's/- (Note taken on [^\n]+|State [^\n]+|Refiled on [^\n]+)(\\\\\n[ ]{2})?/- /g' | # Clean up state change and note lines
-      awk '
+    sed -zE 's/\nCLOCK: [^\n]+//g' |                                                          # Remove CLOCK lines
+    sed -zE 's/- (Note taken on [^\n]+|State [^\n]+|Refiled on [^\n]+)(\\\\\n[ ]{2})?/- /g' | # Clean up state change and note lines
+    awk '
         BEGIN {del=0; removed=0}
         !removed && /^:PROPERTIES:/ {del=1; removed=1; next}
         del && /^:END:/ {del=0; next}
         !del
-      ' | # Remove PROPERTIES block
-      sed -r 's/:(LOGBOOK):(.*)/-----\n--- BEGIN NOTES BLOCK ---/g' | # Replace LOGBOOK header with a custom header
-      sed -r 's/:END:/--- END OF NOTES BLOCK ---\n-----\n--- BEGIN OF TASK DESCRIPTION BLOCK ---\n\n/' | # Add an end header for the logbook and start of task description
-      pandoc -f org -t gfm # Convert to GitHub Flavored Markdown
+      ' |                                                                                              # Remove PROPERTIES block
+    sed -r 's/:(LOGBOOK):(.*)/-----\n--- BEGIN NOTES BLOCK ---/g' |                                    # Replace LOGBOOK header with a custom header
+    sed -r 's/:END:/--- END OF NOTES BLOCK ---\n-----\n--- BEGIN OF TASK DESCRIPTION BLOCK ---\n\n/' | # Add an end header for the logbook and start of task description
+    pandoc -f org -t gfm                                                                               # Convert to GitHub Flavored Markdown
 
 fi

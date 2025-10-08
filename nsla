@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# traNSLAte
+# nsla - traNSLAte: Libre Translate CLI client
 
 # Check if required environment variables are set
 if [ "$LIBRETRANSLATE_HOST" = "" ]; then

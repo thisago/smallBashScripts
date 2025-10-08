@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Provides relevant context for LLM CLI tools, mainly with Aider.
+# contextualize - Provides relevant context for LLM CLI tools, mainly with Aider.
 
 # Get the current task description and notes
 task=$(curtask)

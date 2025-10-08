@@ -1,6 +1,8 @@
 #!/bin/sh
-# Copied from https://gist.github.com/jeanpaulrsoucy/bd76a08144f5dde1a89b88782053edd5
 
+# git-file-versions - Dumps all revisions of a Git tracked file into =/tmp/all_versions_exported=
+
+# Copied from https://gist.github.com/jeanpaulrsoucy/bd76a08144f5dde1a89b88782053edd5
 # based on script provided by Dmitry Shevkoplyas at http://stackoverflow.com/questions/12850030/git-getting-all-previous-version-of-a-specific-file-folder
 
 set -e

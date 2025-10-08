@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# translate to source then back to fix the text
+# txtfix - Translate to a language then translate it back to "fix" the text using Libre Translate
 
 # Checks if the required commands are available
 if ! command -v jq &> /dev/null; then

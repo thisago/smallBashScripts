@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# site2org - Fetches a HTML page with ~wget~ and converts into Org with ~pandoc~.
+
 url="$1"
 outOrgFile="$2"
 if [ -z "$url" ] || [ -z "$outOrgFile" ]; then

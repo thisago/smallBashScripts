@@ -1,24 +1,6 @@
 #!/usr/bin/env bash
 
-# resolveenv: Preprocess a .env file, resolving pass: references to secrets
-#
-# Usage:
-#   resolveenv [input_env_file] [output_env_file]
-#
-# - Reads the input_env_file (default: .env.pass).
-# - For any line of the form VAR=pass:path/to/secret, replaces the value with
-#   the output of `pass show path/to/secret` (first line only).
-# - Writes the result to output_env_file (default: .env).
-# - Lines that do not match the pattern are copied as-is.
-#
-# Example .env.pass:
-#   DB_PASSWORD=pass:cloud/aws.amazon.com/username/tokens/secret_key.gpg
-#   API_KEY=pass:cloud/github.com/username/tokens/copilot.gpg
-#   DEBUG=true
-#
-# Example usage:
-#   resolveenv .env.pass .env
-#   # Now .env contains secrets, ready for use with dotenv loaders.
+# resolveenv - Preprocess a .env file by resolving pass calls.
 
 input="${1:-.env.pass}"
 output="${2:-.env}"
