@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Intention driven terminal session recordings
+# recact - Intention driven terminal session recordings
 
 # Globals
 timestampsFile="timestamps.jsonl"

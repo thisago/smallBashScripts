@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+# catclipimg - Prints clipboard image as ansi in terminal using ~chafa~.
+
 getImage() {
   xclip -selection clipboard -t image/png -o
 }
 
-getImage | chafa - $@
+getImage | chafa -f symbols - $@

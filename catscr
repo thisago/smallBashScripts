@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# catscr prints the screen screenshot as text in the terminal
+
+# catscr - Prints the screen screenshot as text in the terminal
 
 cd "/tmp"
 

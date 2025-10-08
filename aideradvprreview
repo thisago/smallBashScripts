@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Advanced PR review script using Aider
+# aiderreviewpr - Advanced PR review script using Aider
 
 set -e
 

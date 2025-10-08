@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-dir="$1"
+# files-per-sec - Prints the directory files count for each second
 
+dir="$1"
 
 qnt() {
   if ! test -d "$dir"; then
@@ -12,11 +13,11 @@ qnt() {
   ls $dir | wc -l
 }
 
-old=`qnt`
+old=$(qnt)
 
 while true; do
-  new=`qnt`
-  fps=`echo -e "${new} - ${old}" | bc`
+  new=$(qnt)
+  fps=$(echo -e "${new} - ${old}" | bc)
   echo "$fps files per second ($new)"
   sleep 1
   old=$new

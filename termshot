@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# termshot - Dumps current ~tmux~ pane and pipes into ~freeze~. Tip: Use a keybind.
+
 if ! test -n "$TERMSHOT_DIR"; then
   echo "Set TERMSHOT_DIR in your path"
   exit 1

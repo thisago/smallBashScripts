@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-# Dead simple alias to get image from clipboard
+# clipimg - Dead simple alias to get image from clipboard
 
 xclip -selection clipboard -t image/png -o

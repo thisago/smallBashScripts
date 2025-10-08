@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This script captures the contents of the current tmux pane and opens a popup with Aider allowing you to chat about the pane contents.
+# aideronpane - This script captures the contents of the current tmux pane and opens a popup with Aider allowing you to chat about the pane contents.
 
 # Check if AIDERONPANE_DIR is set
 if ! test -n "$AIDERONPANE_DIR"; then

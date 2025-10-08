@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Use a kubeconfig from pass in $1 for any K8s tool, cleaning up after
+# wk8s - Use a kubeconfig from ~pass~
 
 # Exit immediately if any command fails.
 set -e
@@ -20,7 +20,7 @@ fi
 
 # Create a temporary file for the kubeconfig, will be cleaned up upon exit
 KUBECONFIG_TMP="$(mktemp)"
-pass show "$PASS_KEY" > "$KUBECONFIG_TMP"
+pass show "$PASS_KEY" >"$KUBECONFIG_TMP"
 chmod 600 "$KUBECONFIG_TMP"
 
 cleanup() {

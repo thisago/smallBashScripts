@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# epub2org - Unpacks EPUB, recurse its HTML files and packs into a single Org file.
+
 file="$(realpath "$1")"
 outFile="$(realpath "$2")"
 doNotAsk="$3"

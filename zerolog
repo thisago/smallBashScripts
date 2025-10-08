@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-# Format the zerolog JSON output with jq and highlight the non-JSON parts (generally the uncaught errors)
-#
-# Usage: make [task] | ./prettylog
+# zerolog - Format zerolog JSON output with jq and highlight the non-JSON parts (generally the uncaught errors)
 
 zerolog() {
   while read -r line; do
@@ -13,17 +11,17 @@ zerolog() {
       [to_entries[] | select(.key | IN("time", "level", "message") | not) | "\(.key)=\(.value)"] as $extras |
 
       "[" + $time + ($extras | if length > 0 then " " + join(" ") else "" end) + "] " + $level + ": " + $message
-    ' <<< "$line" 2> /dev/null \
-      || echo -e "\033[1;37m$line\033[0m"
-  done < /dev/stdin
+    ' <<<"$line" 2>/dev/null ||
+      echo -e "\033[1;37m$line\033[0m"
+  done </dev/stdin
 }
 
 if [[ -t 0 ]]; then
-  echo "Usage: make [task] | $0"
+  echo "Usage: <GO APPLICATION> | $0"
   exit 1
 fi
 
-if ! command -v jq &> /dev/null; then
+if ! command -v jq &>/dev/null; then
   echo "jq is required to run this script. Please install it and try again."
   exit 1
 fi

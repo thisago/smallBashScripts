@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-# Script that waits RET to record a session on a specific command,
-# execute an post script and loops it again
+# recloop - Waits RET to record a session on a specific command, execute a post script and loops it again
 
 timestampsFile="timestamps.jsonl"
 currentSessionTmpFile=~/session.json

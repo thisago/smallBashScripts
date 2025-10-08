@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# file-bps - Prints file bytes in a pretty format for each second
+
 file=$1
 
 fileSize() {

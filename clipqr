@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-# Decodes clipboard QR code image to text
+# clipqr - Decodes clipboard QR code image to text
 
 clipimg | zbarimg --raw -

@@ -20,7 +20,7 @@ fi
 tmux display-message -d0 "Creating gist for $file" &
 
 # Create a new gist with the file content
-url="$(gh gist create "$file" 2> /dev/null)"
+url="$(gh gist create "$file" 2>/dev/null)"
 if [[ $? -ne 0 ]]; then
   echo "Failed to create gist"
   exit 1
@@ -33,7 +33,7 @@ username="$(echo "$url" | awk -F'/' '{print $(NF-1)}')"
 tmp_dir="$(mktemp -d)"
 
 # Clone the gist repository
-git clone "$url" "$tmp_dir" &> /dev/null
+git clone "$url" "$tmp_dir" &>/dev/null
 if [[ $? -ne 0 ]]; then
   echo "Failed to clone gist repository"
   exit 1
@@ -50,7 +50,7 @@ rm -rf "$tmp_dir"
 
 # Put the raw URL in the clipboard
 # Workaround to fix Tmux hanging - https://stackoverflow.com/questions/77890133/emacs-shell-command-with-xclip-hangs-when-copying-to-clipboard
-echo "$raw_url" | nohup xclip -selection primary > /dev/null 2>&1
+echo "$raw_url" | nohup xclip -selection primary >/dev/null 2>&1
 
 # Notify the user with the raw URL
 tmux display-message -d0 "$raw_url"

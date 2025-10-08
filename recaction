@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-# Convenience script for setupping asciicasts repo if needed
-# And recording without the need of `start.sh` file.
+# recaction - Convenience script for calling ~recact~
 
 # Configs
 bash_history_repo_dir="/home/$USER/Documents/repos/bash_history"
