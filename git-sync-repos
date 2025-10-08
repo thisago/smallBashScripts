@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-# Pushes the repos that contains `vf` origin following the directory rule:
+# git-sync-repos - Pushes the repos that contains =vf= origin following the directory rule.
+# Rules:
 # - repos/*/ - shared. rebase not handled. i.e., personal
 # - repos/mirror/*/ - mirror repos, only available here. i.e., forks
 # - repos/third/*/ - force-pushes, my version is more updated. i.e., job

@@ -31,9 +31,9 @@ done
 - [[file:./getorgnode][getorgnode]] :: Get Org Node by ID via CLI
 - [[file:./gistclip][gistclip]] :: Create a GitHub Gist from a file path in the clipboard
 - [[file:./git-file-versions][git-file-versions]] :: Dumps all revisions of a Git tracked file into =/tmp/all_versions_exported=
-- [[file:./git-gc][git-gc]] :: Convenience script for `git gc` with a size comparison from before and after the GC.
+- [[file:./git-gc][git-gc]] :: Convenience script for =git gc= with a size comparison from before and after the GC.
 - [[file:./git-set-branch-to-hostname][git-set-branch-to-hostname]] :: Sets the branch of the current Git repo to the system hostname
-- [[file:./git-sync-repos][git-sync-repos]] :: repos/*/ - shared. rebase not handled. i.e., personal
+- [[file:./git-sync-repos][git-sync-repos]] :: Pushes the repos that contains =vf= origin following the directory rule.
 - [[file:./noteby][noteby]] :: Crete notes on the clocked task via CLI
 - [[file:./nsla][nsla]] :: traNSLAte: Libre Translate CLI client
 - [[file:./ocrclipimg][ocrclipimg]] :: Alias to get text from clipboard image using Tesseract OCR
