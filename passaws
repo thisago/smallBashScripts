@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# passaws - Run AWS CLI with a ~pass~ directory. Looks for =access_key_id= and =secret_access_key=.
+
+pass_dir="$1"
+if test -z "$pass_dir"; then
+  echo "Usage: $(basename $0) <PASS_DIR>"
+  exit 1
+fi
+shift 1
+
+export AWS_ACCESS_KEY_ID=$(pass $pass_dir/access_key_id)
+export AWS_SECRET_ACCESS_KEY=$(pass $pass_dir/secret_access_key)
+
+exec aws "$@"

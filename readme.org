@@ -29,11 +29,12 @@ done
 - [[file:./git-file-versions][git-file-versions]] (49 LoC) :: Dumps all revisions of a Git tracked file into =/tmp/all_versions_exported=
 - [[file:./git-gc][git-gc]] (17 LoC) :: Convenience script for =git gc= with a size comparison from before and after the GC.
 - [[file:./git-set-branch-to-hostname][git-set-branch-to-hostname]] (35 LoC) :: Sets the branch of the current Git repo to the system hostname
-- [[file:./git-sync-repos][git-sync-repos]] (90 LoC) :: Pushes the repos that contains =vf= origin following the directory rule.
+- [[file:./git-sync-repos][git-sync-repos]] (89 LoC) :: Pushes the repos that contains =vf= origin following the directory rule.
 - [[file:./noteby][noteby]] (65 LoC) :: Crete notes on the Emacs clocked task via CLI
 - [[file:./nsla][nsla]] (51 LoC) :: traNSLAte: Libre Translate CLI client
 - [[file:./ocrclipimg][ocrclipimg]] (5 LoC) :: Alias to get text from clipboard image using Tesseract OCR
 - [[file:./panecontent][panecontent]] (50 LoC) :: Script that prints the tmux pane contents into stdout through a pane selection menu via gum
+- [[file:./passaws][passaws]] (15 LoC) :: Run AWS CLI with a ~pass~ directory. Looks for =access_key_id= and =secret_access_key=.
 - [[file:./recact][recact]] (327 LoC) :: Intention driven terminal session recordings
 - [[file:./recaction][recaction]] (46 LoC) :: Convenience script for calling ~recact~
 - [[file:./recloop][recloop]] (82 LoC) :: Waits RET to record a session on a specific command, execute a post script and loops it again
